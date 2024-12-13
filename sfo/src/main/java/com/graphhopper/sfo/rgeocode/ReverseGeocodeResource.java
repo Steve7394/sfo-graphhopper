@@ -1,12 +1,13 @@
 package com.graphhopper.sfo.rgeocode;
 
 import com.graphhopper.GraphHopper;
-import com.graphhopper.routing.ev.BooleanEncodedValue;
-import com.graphhopper.routing.ev.DecimalEncodedValue;
-import com.graphhopper.routing.ev.EnumEncodedValue;
-import com.graphhopper.routing.ev.IntEncodedValue;
+import com.graphhopper.routing.ev.*;
 import com.graphhopper.routing.util.EdgeFilter;
 import com.graphhopper.routing.util.EncodingManager;
+import com.graphhopper.routing.util.parsers.CityNameParser;
+import com.graphhopper.routing.util.parsers.CityOsmIdParser;
+import com.graphhopper.routing.util.parsers.ProvinceNameParser;
+import com.graphhopper.routing.util.parsers.ProvinceOsmIdParser;
 import com.graphhopper.search.KVStorage;
 import com.graphhopper.storage.index.LocationIndex;
 import com.graphhopper.util.EdgeIteratorState;
@@ -37,34 +38,41 @@ public class ReverseGeocodeResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response doPost(SnapRequest requestBody) {
-        // possible validations must implement later
+        validateRequest(requestBody);
+
+        SnapResponse response = new SnapResponse();
+
+        enrichResponse(requestBody, response);
 
 
-        // we can implement edge filter, for example do not snap on footways or steps
-        EdgeIteratorState edge = locationIndex
-                .findClosest(requestBody.getLat(), requestBody.getLon(), EdgeFilter.ALL_EDGES)
-                .getClosestEdge();
-
-        // based on project demands a class for response must be created later
-        Map<String, String> result = new HashMap<>(3);
-        for (Map.Entry<String, KVStorage.KValue> e : edge.getKeyValues().entrySet()) {
-            result.put(e.getKey(), e.getValue().toString());
-        }
-
-        encodingManager.getEncodedValues().forEach(ev -> {
-            if (ev instanceof EnumEncodedValue)
-                result.put(ev.getName(), edge.get((EnumEncodedValue) ev).toString() + (ev.isStoreTwoDirections() ? " | " + edge.getReverse((EnumEncodedValue) ev).toString() : ""));
-            else if (ev instanceof DecimalEncodedValue)
-                result.put(ev.getName(), edge.get((DecimalEncodedValue) ev) + (ev.isStoreTwoDirections() ? " | " + edge.getReverse((DecimalEncodedValue) ev) : ""));
-            else if (ev instanceof BooleanEncodedValue)
-                result.put(ev.getName(), edge.get((BooleanEncodedValue) ev) + (ev.isStoreTwoDirections() ? " | " + edge.getReverse((BooleanEncodedValue) ev) : ""));
-            else if (ev instanceof IntEncodedValue)
-                result.put(ev.getName(), edge.get((IntEncodedValue) ev) + (ev.isStoreTwoDirections() ? " | " + edge.getReverse((IntEncodedValue) ev) : ""));
-        });
 
         // possible exceptions must be added later
         return Response.status(Response.Status.OK)
-                .entity(result)
+                .entity(response)
                 .build();
+    }
+
+    private void validateRequest(SnapRequest snapRequest){
+        if (snapRequest.getLat() == null || snapRequest.getLon() == null){
+            throw new IllegalArgumentException("The latitude and longitude parameters can not be null");
+        }
+        // out of bounds error based on iran country geometry must be implemented
+    }
+
+    private void enrichResponse(SnapRequest snapRequest, SnapResponse snapResponse){
+        // we can implement edge filter, for example do not snap on footways or steps
+        EdgeIteratorState edge = locationIndex
+                .findClosest(snapRequest.getLat(), snapRequest.getLon(), EdgeFilter.ALL_EDGES)
+                .getClosestEdge();
+        // edge validation check if null, must test in a low density area
+        snapResponse.setStreet(edge.getName());
+        snapResponse.setStreetType(edge.get(encodingManager.getEnumEncodedValue(RoadClass.KEY, RoadClass.class)).name());
+        snapResponse.setStreetWayId(edge.get(encodingManager.getIntEncodedValue(OSMWayID.KEY)));
+        snapResponse.setStreetMaxSpeed(edge.get(encodingManager.getDecimalEncodedValue(MaxSpeed.KEY)));
+        snapResponse.setCountry(edge.get(encodingManager.getEnumEncodedValue(Country.KEY, Country.class)).getCountryName());
+        snapResponse.setProvince(edge.get(encodingManager.getStringEncodedValue(ProvinceNameParser.KEY)));
+        snapResponse.setProvinceOsmId(edge.get(encodingManager.getIntEncodedValue(ProvinceOsmIdParser.KEY)));
+        snapResponse.setCity(edge.get(encodingManager.getStringEncodedValue(CityNameParser.KEY)));
+        snapResponse.setCityOsmId(edge.get(encodingManager.getIntEncodedValue(CityOsmIdParser.KEY)));
     }
 }
