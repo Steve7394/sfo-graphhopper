@@ -347,6 +347,26 @@ public class DefaultImportRegistry implements ImportRegistry {
                     (lookup, props) -> new MountainBikePriorityParser(lookup),
                     VehicleSpeed.key("mtb"), BikeNetwork.KEY
             );
+        else if (ProvinceNameParser.KEY.equals(name))
+            return ImportUnit.create(name, props ->
+                            new StringEncodedValue(name, 255),
+                    (lookup, props) -> new ProvinceNameParser(lookup)
+            );
+        else if (CityNameParser.KEY.equals(name))
+            return ImportUnit.create(name, props ->
+                            new StringEncodedValue(name, 255),
+                    (lookup, props) -> new CityNameParser(lookup)
+            );
+        else if (ProvinceOsmIdParser.KEY.equals(name))
+            return ImportUnit.create(name, props ->
+                            new IntEncodedValueImpl(name, 31, false),
+                    (lookup, props) -> new ProvinceOsmIdParser(lookup)
+            );
+        else if (CityOsmIdParser.KEY.equals(name))
+            return ImportUnit.create(name, props ->
+                            new IntEncodedValueImpl(name, 31, false),
+                    (lookup, props) -> new CityOsmIdParser(lookup)
+            );
         return null;
     }
 }
