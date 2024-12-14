@@ -19,6 +19,10 @@ public class ProvinceNameParser extends AdministrativeParser{
     @Override
     public void handleWayTags(int edgeId, EdgeIntAccess edgeIntAccess, ReaderWay way, IntsRef relationFlags) {
         CustomArea provinceArea = getAdmissionArea(way, ADMIN_TYPE);
+        if (provinceArea == null){
+            provinceNameEn.setString(false, edgeId, edgeIntAccess, "missing");
+            return;
+        }
         provinceNameEn.setString(false, edgeId, edgeIntAccess, (String) provinceArea.getProperties().get(NAME_TAG));
     }
 }

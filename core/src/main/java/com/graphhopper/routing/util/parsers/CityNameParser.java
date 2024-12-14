@@ -19,6 +19,10 @@ public class CityNameParser extends AdministrativeParser{
     @Override
     public void handleWayTags(int edgeId, EdgeIntAccess edgeIntAccess, ReaderWay way, IntsRef relationFlags) {
         CustomArea cityArea = getAdmissionArea(way, ADMIN_TYPE);
+        if (cityArea == null){
+            cityNameEnc.setString(false, edgeId, edgeIntAccess, "missing");
+            return;
+        }
         cityNameEnc.setString(false, edgeId, edgeIntAccess, (String) cityArea.getProperties().get(NAME_TAG));
     }
 }

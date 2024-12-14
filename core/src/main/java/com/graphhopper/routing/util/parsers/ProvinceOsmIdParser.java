@@ -19,6 +19,10 @@ public class ProvinceOsmIdParser extends AdministrativeParser {
     @Override
     public void handleWayTags(int edgeId, EdgeIntAccess edgeIntAccess, ReaderWay way, IntsRef relationFlags) {
         CustomArea provinceArea = getAdmissionArea(way, ADMIN_TYPE);
+        if (provinceArea == null){
+            provinceOsmIdEnc.setInt(false, edgeId, edgeIntAccess, 0);
+            return;
+        }
         long provinceOsmId = Long.parseLong(String.valueOf(provinceArea.getProperties().get(OSM_ID_TAG)));
         validateAdminOsmIdLong(provinceOsmIdEnc, provinceOsmId);
         provinceOsmIdEnc.setInt(false, edgeId, edgeIntAccess, Math.toIntExact(provinceOsmId));

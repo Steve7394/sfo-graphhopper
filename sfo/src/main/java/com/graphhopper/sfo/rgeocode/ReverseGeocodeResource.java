@@ -64,7 +64,9 @@ public class ReverseGeocodeResource {
         EdgeIteratorState edge = locationIndex
                 .findClosest(snapRequest.getLat(), snapRequest.getLon(), EdgeFilter.ALL_EDGES)
                 .getClosestEdge();
-        // edge validation check if null, must test in a low density area
+        if (edge == null){
+            throw new IllegalArgumentException("There is no edge near requested point: {" + snapRequest.toString() + "}");
+        }
         snapResponse.setStreet(edge.getName());
         snapResponse.setStreetType(edge.get(encodingManager.getEnumEncodedValue(RoadClass.KEY, RoadClass.class)).name());
         snapResponse.setStreetWayId(edge.get(encodingManager.getIntEncodedValue(OSMWayID.KEY)));

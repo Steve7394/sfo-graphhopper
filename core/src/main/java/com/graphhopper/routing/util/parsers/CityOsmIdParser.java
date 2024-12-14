@@ -19,6 +19,10 @@ public class CityOsmIdParser extends AdministrativeParser{
     @Override
     public void handleWayTags(int edgeId, EdgeIntAccess edgeIntAccess, ReaderWay way, IntsRef relationFlags) {
         CustomArea cityArea = getAdmissionArea(way, ADMIN_TYPE);
+        if (cityArea == null){
+            cityOsmIdEnc.setInt(false, edgeId, edgeIntAccess, 0);
+            return;
+        }
         long cityOsmId = Long.parseLong(String.valueOf(cityArea.getProperties().get(OSM_ID_TAG)));
         validateAdminOsmIdLong(cityOsmIdEnc, cityOsmId);
         cityOsmIdEnc.setInt(false, edgeId, edgeIntAccess, Math.toIntExact(cityOsmId));
