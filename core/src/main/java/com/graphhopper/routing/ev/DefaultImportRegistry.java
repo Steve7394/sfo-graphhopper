@@ -349,12 +349,12 @@ public class DefaultImportRegistry implements ImportRegistry {
             );
         else if (ProvinceNameParser.KEY.equals(name))
             return ImportUnit.create(name, props ->
-                            new StringEncodedValue(name, 255),
+                            new StringEncodedValue(name, 1000),
                     (lookup, props) -> new ProvinceNameParser(lookup)
             );
         else if (CityNameParser.KEY.equals(name))
             return ImportUnit.create(name, props ->
-                            new StringEncodedValue(name, 255),
+                            new StringEncodedValue(name, 1000),
                     (lookup, props) -> new CityNameParser(lookup)
             );
         else if (ProvinceOsmIdParser.KEY.equals(name))
