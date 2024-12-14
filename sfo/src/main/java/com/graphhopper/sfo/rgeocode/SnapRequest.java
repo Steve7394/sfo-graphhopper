@@ -24,4 +24,9 @@ public class SnapRequest {
     public void setLon(Double lon) {
         this.lon = round(lon, 7);
     }
+
+    @Override
+    public String toString() {
+        return "lat: " + this.lat + ", lon: " + this.lon;
+    }
 }
