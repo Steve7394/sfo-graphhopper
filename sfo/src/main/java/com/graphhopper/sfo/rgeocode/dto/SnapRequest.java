@@ -3,10 +3,14 @@ package com.graphhopper.sfo.rgeocode.dto;
 import static com.graphhopper.util.Helper.round;
 
 public class SnapRequest {
-    private Double lat;
-    private Double lon;
+    private double lat;
+    private double lon;
 
     public SnapRequest() {
+    }
+    public SnapRequest(double lat, double lon) {
+        this.lat = lat;
+        this.lon = lon;
     }
 
     public Double getLat() {
