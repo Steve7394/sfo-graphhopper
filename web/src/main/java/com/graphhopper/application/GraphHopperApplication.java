@@ -24,7 +24,7 @@ import com.graphhopper.http.CORSFilter;
 import com.graphhopper.http.GraphHopperBundle;
 import com.graphhopper.http.RealtimeBundle;
 import com.graphhopper.navigation.NavigateResource;
-import com.graphhopper.sfo.rgeocode.ReverseGeocodeResource;
+import com.graphhopper.sfo.rgeocode.resource.ReverseGeocodeResource;
 import io.dropwizard.assets.AssetsBundle;
 import io.dropwizard.core.Application;
 import io.dropwizard.core.setup.Bootstrap;

@@ -1,4 +1,4 @@
-package com.graphhopper.sfo.rgeocode;
+package com.graphhopper.sfo.rgeocode.dto;
 
 public class SnapResponse {
     private String country;

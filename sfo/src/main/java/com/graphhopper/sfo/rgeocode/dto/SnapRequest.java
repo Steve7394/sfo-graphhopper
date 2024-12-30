@@ -1,4 +1,4 @@
-package com.graphhopper.sfo.rgeocode;
+package com.graphhopper.sfo.rgeocode.dto;
 
 import static com.graphhopper.util.Helper.round;
 
