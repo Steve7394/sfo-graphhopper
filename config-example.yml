@@ -180,7 +180,7 @@ graphhopper:
   # routing.max_visited_nodes: 1000000
 
   # default for snap_preventions
-  routing.snap_preventions_default: tunnel, bridge, ferry
+  routing.snap_preventions_default:  ferry
 
   # The maximum time in milliseconds after which a routing request will be aborted. This has some routing algorithm
   # specific caveats, but generally it should allow the prevention of long-running requests. The default is Long.MAX_VALUE
