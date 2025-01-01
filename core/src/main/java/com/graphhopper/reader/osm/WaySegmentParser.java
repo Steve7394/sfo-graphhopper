@@ -77,9 +77,11 @@ public class WaySegmentParser {
 
     private final OSMNodeData nodeData;
     private Date timestamp;
+    private final IReaderAdministrativePolygons readerAdministrativePolygons;
 
-    private WaySegmentParser(OSMNodeData nodeData) {
+    private WaySegmentParser(OSMNodeData nodeData, IReaderAdministrativePolygons readerAdministrativePolygons) {
         this.nodeData = nodeData;
+        this.readerAdministrativePolygons = readerAdministrativePolygons;
     }
 
     /**
@@ -120,6 +122,7 @@ public class WaySegmentParser {
     }
 
     private class Pass1Handler implements ReaderElementHandler {
+        private int pass = 1;
         private boolean handledWays;
         private boolean handledRelations;
         private long wayCounter = 0;
@@ -139,8 +142,10 @@ public class WaySegmentParser {
                 LOGGER.info("pass1 - processed ways: " + nf(wayCounter) + ", accepted ways: " + nf(acceptedWays) +
                         ", way nodes: " + nf(nodeData.getNodeCount()) + ", " + Helper.getMemInfo());
 
-            if (!wayFilter.test(way))
+            if (!wayFilter.test(way)) {
+                readerAdministrativePolygons.handleWay(way, pass);
                 return;
+            }
             acceptedWays++;
 
             for (LongCursor node : way.getNodes()) {
@@ -180,6 +185,7 @@ public class WaySegmentParser {
     }
 
     private class Pass2Handler implements ReaderElementHandler {
+        int pass = 2;
         private boolean handledNodes;
         private boolean handledWays;
         private boolean handledRelations;
@@ -416,7 +422,7 @@ public class WaySegmentParser {
          * @param directory   the directory to be used to store temporary data
          */
         public Builder(PointAccess pointAccess, Directory directory) {
-            waySegmentParser = new WaySegmentParser(new OSMNodeData(pointAccess, directory));
+            waySegmentParser = new WaySegmentParser(new OSMNodeData(pointAccess, directory), new ReaderAdministrativePolygons());
         }
 
         /**
