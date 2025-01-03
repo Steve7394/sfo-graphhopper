@@ -10,5 +10,6 @@ public interface IReaderAdministrativePolygons {
     void handleWay(ReaderWay way, int pass);
 
     void handleRelation(ReaderRelation relation, int pass);
+    void flush();
 
 }
