@@ -122,7 +122,7 @@ public class WaySegmentParser {
     }
 
     private class Pass1Handler implements ReaderElementHandler {
-        private int pass = 1;
+        private final int pass = 1;
         private boolean handledWays;
         private boolean handledRelations;
         private long wayCounter = 0;
@@ -169,6 +169,7 @@ public class WaySegmentParser {
                 LOGGER.info("pass1 - processed relations: " + nf(relationsCounter) + ", " + Helper.getMemInfo());
 
             relationPreprocessor.accept(relation);
+            readerAdministrativePolygons.handleRelation(relation, pass);
         }
 
         @Override
@@ -185,7 +186,7 @@ public class WaySegmentParser {
     }
 
     private class Pass2Handler implements ReaderElementHandler {
-        int pass = 2;
+        private final int pass = 2;
         private boolean handledNodes;
         private boolean handledWays;
         private boolean handledRelations;
@@ -208,7 +209,7 @@ public class WaySegmentParser {
             if (++nodeCounter % 10_000_000 == 0)
                 LOGGER.info("pass2 - processed nodes: " + nf(nodeCounter) + ", accepted nodes: " + nf(acceptedNodes) +
                         ", " + Helper.getMemInfo());
-
+            readerAdministrativePolygons.handleNode(node, pass);
             long nodeType = nodeData.addCoordinatesIfMapped(node.getId(), node.getLat(), node.getLon(), () -> elevationProvider.applyAsDouble(node));
             if (nodeType == EMPTY_NODE)
                 return;
@@ -250,8 +251,10 @@ public class WaySegmentParser {
             if (++wayCounter % 10_000_000 == 0)
                 LOGGER.info("pass2 - processed ways: " + nf(wayCounter) + ", " + Helper.getMemInfo());
 
-            if (!wayFilter.test(way))
+            if (!wayFilter.test(way)) {
+                readerAdministrativePolygons.handleWay(way, pass);
                 return;
+            }
             List<SegmentNode> segment = new ArrayList<>(way.getNodes().size());
             for (LongCursor node : way.getNodes())
                 segment.add(new SegmentNode(node.value, nodeData.getId(node.value), nodeData.getTags(node.value)));
@@ -381,12 +384,14 @@ public class WaySegmentParser {
             }
 
             relationProcessor.processRelation(relation, this::getInternalNodeIdOfOSMNode);
+            readerAdministrativePolygons.handleRelation(relation, pass);
         }
 
         @Override
         public void onFinish() {
             LOGGER.info("pass2 - finished, processed ways: {}, way nodes: {}, nodes with tags: {}, node tag capacity: {}, ignored barriers at junctions: {}",
                     nf(wayCounter), nf(acceptedNodes), nf(nodeData.getTaggedNodeCount()), nf(nodeData.getNodeTagCapacity()), nf(ignoredSplitNodes));
+            readerAdministrativePolygons.flush();
         }
 
         public int getInternalNodeIdOfOSMNode(long nodeOsmId) {
