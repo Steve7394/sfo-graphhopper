@@ -20,7 +20,7 @@ public abstract class AdministrativeParser implements TagParser {
     protected CustomArea getAdmissionArea(ReaderWay way, String administrativeType) {
         List<CustomArea> areas = way.getTag("custom_areas", new ArrayList<>());
         if (areas.size() <= 1) {
-            LOGGER.warn("The way with id: " + way.getId() + "is not in any area");
+//            LOGGER.warn("The way with id: " + way.getId() + "is not in any area");
             return null;
         }
         CustomArea area = areas.stream().filter(a -> a.getProperties().containsKey("type") && a.getProperties().get("type").equals(administrativeType)).findFirst().orElse(null);
