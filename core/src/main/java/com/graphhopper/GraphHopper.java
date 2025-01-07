@@ -27,6 +27,8 @@ import com.graphhopper.reader.dem.*;
 import com.graphhopper.reader.osm.OSMReader;
 import com.graphhopper.reader.osm.RestrictionTagParser;
 import com.graphhopper.reader.osm.conditional.DateRangeParser;
+import com.graphhopper.reader.osm.sfo.AdministrativePolygonParser;
+import com.graphhopper.reader.osm.sfo.ReaderAdministrativePolygons;
 import com.graphhopper.routing.*;
 import com.graphhopper.routing.ch.CHPreparationHandler;
 import com.graphhopper.routing.ch.PrepareContractionHierarchies;
@@ -95,6 +97,7 @@ public class GraphHopper {
     private CountryRuleFactory countryRuleFactory = null;
     // for custom areas:
     private String customAreasDirectory = "";
+    private String osmAreaDirectory = "";
     // for graph:
     private BaseGraph baseGraph;
     private StorableProperties properties;
@@ -486,6 +489,7 @@ public class GraphHopper {
 
         countryRuleFactory = ghConfig.getBool("country_rules.enabled", false) ? new CountryRuleFactory() : null;
         customAreasDirectory = ghConfig.getString("custom_areas.directory", customAreasDirectory);
+        osmAreaDirectory = ghConfig.getString("osm_areas.directory", osmAreaDirectory);
 
         defaultSegmentSize = ghConfig.getInt("graph.dataaccess.segment_size", defaultSegmentSize);
 
@@ -907,11 +911,23 @@ public class GraphHopper {
                     + " but also cannot use file for DataReader as it wasn't specified!");
 
         List<CustomArea> customAreas = readCountries();
+
+        if (isEmpty(osmAreaDirectory)){
+            logger.info("No osm areas are used, osm_areas.directory not given");
+        }else {
+            AdministrativePolygonParser adminParser = new AdministrativePolygonParser(
+                    new ReaderAdministrativePolygons(osmAreaDirectory)
+            );
+            adminParser.readOSM(_getOSMFile());
+            customAreas.addAll(readCustomAreas(osmAreaDirectory));
+        }
+
+
         if (isEmpty(customAreasDirectory)) {
             logger.info("No custom areas are used, custom_areas.directory not given");
         } else {
             logger.info("Creating custom area index, reading custom areas from: '" + customAreasDirectory + "'");
-            customAreas.addAll(readCustomAreas());
+            customAreas.addAll(readCustomAreas(customAreasDirectory));
         }
 
         AreaIndex<CustomArea> areaIndex = new AreaIndex<>(customAreas);
@@ -967,10 +983,10 @@ public class GraphHopper {
         EncodingManager.putEncodingManagerIntoProperties(encodingManager, properties);
     }
 
-    private List<CustomArea> readCustomAreas() {
+    private List<CustomArea> readCustomAreas(String directory) {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JtsModule());
-        final Path bordersDirectory = Paths.get(customAreasDirectory);
+        final Path bordersDirectory = Paths.get(directory);
         List<JsonFeatureCollection> jsonFeatureCollections = new ArrayList<>();
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(bordersDirectory, "*.{geojson,json}")) {
             for (Path borderFile : stream) {
