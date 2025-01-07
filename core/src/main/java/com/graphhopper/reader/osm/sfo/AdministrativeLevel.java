@@ -1,4 +1,4 @@
-package com.graphhopper.reader.osm;
+package com.graphhopper.reader.osm.sfo;
 
 import java.util.Arrays;
 import java.util.Optional;
@@ -9,7 +9,7 @@ public enum AdministrativeLevel {
     DISTRICT("district", 6),
     CITY_MUNICIPALITY("city_municipality", 7),
     VILLAGE("village", 8),
-    SUBURB("village", 9),
+    SUBURB("suburb", 9),
     SUBAREA("subarea", 10),
     NEIGHBOURHOOD("neighbourhood", 11);
 
