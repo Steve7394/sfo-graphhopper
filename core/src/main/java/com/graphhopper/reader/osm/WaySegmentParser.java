@@ -77,11 +77,9 @@ public class WaySegmentParser {
 
     private final OSMNodeData nodeData;
     private Date timestamp;
-    private final IReaderAdministrativePolygons readerAdministrativePolygons;
 
-    private WaySegmentParser(OSMNodeData nodeData, IReaderAdministrativePolygons readerAdministrativePolygons) {
+    private WaySegmentParser(OSMNodeData nodeData) {
         this.nodeData = nodeData;
-        this.readerAdministrativePolygons = readerAdministrativePolygons;
     }
 
     /**
@@ -122,7 +120,6 @@ public class WaySegmentParser {
     }
 
     private class Pass1Handler implements ReaderElementHandler {
-        private final int pass = 1;
         private boolean handledWays;
         private boolean handledRelations;
         private long wayCounter = 0;
@@ -143,7 +140,6 @@ public class WaySegmentParser {
                         ", way nodes: " + nf(nodeData.getNodeCount()) + ", " + Helper.getMemInfo());
 
             if (!wayFilter.test(way)) {
-                readerAdministrativePolygons.handleWay(way, pass);
                 return;
             }
             acceptedWays++;
@@ -169,7 +165,6 @@ public class WaySegmentParser {
                 LOGGER.info("pass1 - processed relations: " + nf(relationsCounter) + ", " + Helper.getMemInfo());
 
             relationPreprocessor.accept(relation);
-            readerAdministrativePolygons.handleRelation(relation, pass);
         }
 
         @Override
@@ -186,7 +181,6 @@ public class WaySegmentParser {
     }
 
     private class Pass2Handler implements ReaderElementHandler {
-        private final int pass = 2;
         private boolean handledNodes;
         private boolean handledWays;
         private boolean handledRelations;
@@ -209,7 +203,7 @@ public class WaySegmentParser {
             if (++nodeCounter % 10_000_000 == 0)
                 LOGGER.info("pass2 - processed nodes: " + nf(nodeCounter) + ", accepted nodes: " + nf(acceptedNodes) +
                         ", " + Helper.getMemInfo());
-            readerAdministrativePolygons.handleNode(node, pass);
+
             long nodeType = nodeData.addCoordinatesIfMapped(node.getId(), node.getLat(), node.getLon(), () -> elevationProvider.applyAsDouble(node));
             if (nodeType == EMPTY_NODE)
                 return;
@@ -252,7 +246,6 @@ public class WaySegmentParser {
                 LOGGER.info("pass2 - processed ways: " + nf(wayCounter) + ", " + Helper.getMemInfo());
 
             if (!wayFilter.test(way)) {
-                readerAdministrativePolygons.handleWay(way, pass);
                 return;
             }
             List<SegmentNode> segment = new ArrayList<>(way.getNodes().size());
@@ -384,14 +377,12 @@ public class WaySegmentParser {
             }
 
             relationProcessor.processRelation(relation, this::getInternalNodeIdOfOSMNode);
-            readerAdministrativePolygons.handleRelation(relation, pass);
         }
 
         @Override
         public void onFinish() {
             LOGGER.info("pass2 - finished, processed ways: {}, way nodes: {}, nodes with tags: {}, node tag capacity: {}, ignored barriers at junctions: {}",
                     nf(wayCounter), nf(acceptedNodes), nf(nodeData.getTaggedNodeCount()), nf(nodeData.getNodeTagCapacity()), nf(ignoredSplitNodes));
-            readerAdministrativePolygons.flush();
         }
 
         public int getInternalNodeIdOfOSMNode(long nodeOsmId) {
@@ -427,7 +418,7 @@ public class WaySegmentParser {
          * @param directory   the directory to be used to store temporary data
          */
         public Builder(PointAccess pointAccess, Directory directory) {
-            waySegmentParser = new WaySegmentParser(new OSMNodeData(pointAccess, directory), new ReaderAdministrativePolygons());
+            waySegmentParser = new WaySegmentParser(new OSMNodeData(pointAccess, directory));
         }
 
         /**
