@@ -29,39 +29,39 @@ graphhopper:
   # profiles (see below). Or at least limit the number of `routing.max_visited_nodes`.
 
   profiles:
-   - name: car
-#     turn_costs:
-#       vehicle_types: [motorcar, motor_vehicle]
-#       u_turn_costs: 60
-#     for more advanced turn costs, see #2957 or bike_tc.yml
-     custom_model_files: [car.json]
+    - name: car
+      #     turn_costs:
+      #       vehicle_types: [motorcar, motor_vehicle]
+      #       u_turn_costs: 60
+      #     for more advanced turn costs, see #2957 or bike_tc.yml
+      custom_model_files: [ car.json ]
 
-#   You can use the following in-built profiles. After you start GraphHopper it will print which encoded values you'll have to add to graph.encoded_values in this config file.
-#
-#    - name: foot
-#      custom_model_files: [foot.json, foot_elevation.json]
-#
-#    - name: bike
-#      custom_model_files: [bike.json, bike_elevation.json]
-#
-#    - name: racingbike
-#      custom_model_files: [racingbike.json, bike_elevation.json]
-#
-#    - name: mtb
-#      custom_model_files: [mtb.json, bike_elevation.json]
-#
-#    # See the bus.json for more details.
-#    - name: bus
-#       turn_costs:
-#         vehicle_types: [bus, motor_vehicle]
-#         u_turn_costs: 60
-#      custom_model_files: [bus.json]
-#
-#   Other custom models not listed here are: car4wd.json, motorcycle.json, truck.json or cargo-bike.json. You might need to modify and test them before production usage.
-#   See ./core/src/main/resources/com/graphhopper/custom_models and let us know if you customize them, improve them or create new onces!
-#   Also there is the curvature.json custom model which might be useful for a motorcyle profile or the opposite for a truck profile.
-#   Then specify a folder where to find your own custom model files:
-#  custom_models.directory: custom_models
+  #   You can use the following in-built profiles. After you start GraphHopper it will print which encoded values you'll have to add to graph.encoded_values in this config file.
+  #
+  #    - name: foot
+  #      custom_model_files: [foot.json, foot_elevation.json]
+  #
+  #    - name: bike
+  #      custom_model_files: [bike.json, bike_elevation.json]
+  #
+  #    - name: racingbike
+  #      custom_model_files: [racingbike.json, bike_elevation.json]
+  #
+  #    - name: mtb
+  #      custom_model_files: [mtb.json, bike_elevation.json]
+  #
+  #    # See the bus.json for more details.
+  #    - name: bus
+  #       turn_costs:
+  #         vehicle_types: [bus, motor_vehicle]
+  #         u_turn_costs: 60
+  #      custom_model_files: [bus.json]
+  #
+  #   Other custom models not listed here are: car4wd.json, motorcycle.json, truck.json or cargo-bike.json. You might need to modify and test them before production usage.
+  #   See ./core/src/main/resources/com/graphhopper/custom_models and let us know if you customize them, improve them or create new onces!
+  #   Also there is the curvature.json custom model which might be useful for a motorcyle profile or the opposite for a truck profile.
+  #   Then specify a folder where to find your own custom model files:
+  #  custom_models.directory: custom_models
 
 
   # Speed mode:
@@ -82,7 +82,7 @@ graphhopper:
   # profile for which an LM profile exists. Important: This only will give correct routing results if the weights
   # calculated for the profile are equal or larger (for every edge) than those calculated for the profile that was used
   # for the preparation (`my_other_profile`)
-  profiles_lm: []
+  profiles_lm: [ ]
 
 
   #### Encoded Values ####
@@ -92,7 +92,12 @@ graphhopper:
   # More are: surface,smoothness,max_width,max_height,max_weight,max_weight_except,hgv,max_axle_load,max_length,
   #           hazmat,hazmat_tunnel,hazmat_water,lanes,osm_way_id,toll,track_type,mtb_rating,hike_rating,horse_rating,
   #           country,curvature,average_slope,max_slope,car_temporal_access,bike_temporal_access,foot_temporal_access
-  graph.encoded_values: car_access, car_average_speed, road_access, osm_way_id, country, province_name, province_osm_id, city_name, city_osm_id
+  graph.encoded_values: car_access, car_average_speed, road_access,
+    osm_way_id, country,
+    province_name, province_osm_id, city_municipality_name, city_municipality_osm_id,
+    county_name, county_osm_id, district_name, district_osm_id,
+    village_name, village_osm_id, subarea_name, subarea_osm_id,
+    suburb_name, suburb_osm_id, neighbourhood_name, neighbourhood_osm_id
 
   #### Speed, hybrid and flexible mode ####
 
@@ -180,7 +185,7 @@ graphhopper:
   # routing.max_visited_nodes: 1000000
 
   # default for snap_preventions
-  routing.snap_preventions_default:  ferry
+  routing.snap_preventions_default: ferry
 
   # The maximum time in milliseconds after which a routing request will be aborted. This has some routing algorithm
   # specific caveats, but generally it should allow the prevention of long-running requests. The default is Long.MAX_VALUE
@@ -215,7 +220,8 @@ graphhopper:
   # GraphHopper reads GeoJSON polygon files including their properties from this directory and makes them available
   # to all tag parsers and custom models. All GeoJSON Features require to have the "id" property.
   # Country borders are included automatically (see countries.geojson).
-  custom_areas.directory: ./custom_areas
+  custom_areas.directory: ./custom-areas
+  osm_areas.directory: ./osm-areas
 
   #### Country Rules ####
 
@@ -226,18 +232,18 @@ graphhopper:
 # Dropwizard server configuration
 server:
   application_connectors:
-  - type: http
-    port: 8989
-    # for security reasons bind to localhost
-    bind_host: localhost
-    # increase GET request limit - not necessary if /maps UI is not used or used without custom models
-    max_request_header_size: 50k
+    - type: http
+      port: 8989
+      # for security reasons bind to localhost
+      bind_host: localhost
+      # increase GET request limit - not necessary if /maps UI is not used or used without custom models
+      max_request_header_size: 50k
   request_log:
-      appenders: []
+    appenders: [ ]
   admin_connectors:
-  - type: http
-    port: 8990
-    bind_host: localhost
+    - type: http
+      port: 8990
+      bind_host: localhost
 # See https://www.dropwizard.io/en/latest/manual/core.html#logging
 logging:
   appenders:

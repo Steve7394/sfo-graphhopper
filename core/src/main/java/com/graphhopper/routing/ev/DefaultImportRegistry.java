@@ -20,6 +20,7 @@ package com.graphhopper.routing.ev;
 
 import com.graphhopper.routing.util.*;
 import com.graphhopper.routing.util.parsers.*;
+import com.graphhopper.routing.util.parsers.sfo.*;
 import com.graphhopper.util.PMap;
 
 public class DefaultImportRegistry implements ImportRegistry {
@@ -349,23 +350,83 @@ public class DefaultImportRegistry implements ImportRegistry {
             );
         else if (ProvinceNameParser.KEY.equals(name))
             return ImportUnit.create(name, props ->
-                            new StringEncodedValue(name, 1000),
+                            new StringEncodedValue(name, 60),
                     (lookup, props) -> new ProvinceNameParser(lookup)
-            );
-        else if (CityNameParser.KEY.equals(name))
-            return ImportUnit.create(name, props ->
-                            new StringEncodedValue(name, 1000),
-                    (lookup, props) -> new CityNameParser(lookup)
             );
         else if (ProvinceOsmIdParser.KEY.equals(name))
             return ImportUnit.create(name, props ->
                             new IntEncodedValueImpl(name, 31, false),
                     (lookup, props) -> new ProvinceOsmIdParser(lookup)
             );
+        else if (CityNameParser.KEY.equals(name))
+            return ImportUnit.create(name, props ->
+                            new StringEncodedValue(name, 3400),
+                    (lookup, props) -> new CityNameParser(lookup)
+            );
         else if (CityOsmIdParser.KEY.equals(name))
             return ImportUnit.create(name, props ->
                             new IntEncodedValueImpl(name, 31, false),
                     (lookup, props) -> new CityOsmIdParser(lookup)
+            );
+        else if (DistrictNameParser.KEY.equals(name))
+            return ImportUnit.create(name, props ->
+                            new StringEncodedValue(name, 1200),
+                    (lookup, props) -> new DistrictNameParser(lookup)
+            );
+        else if (DistrictOsmIdParser.KEY.equals(name))
+            return ImportUnit.create(name, props ->
+                            new IntEncodedValueImpl(name, 31, false),
+                    (lookup, props) -> new DistrictOsmIdParser(lookup)
+            );
+        else if (CountyNameParser.KEY.equals(name))
+            return ImportUnit.create(name, props ->
+                            new StringEncodedValue(name, 500),
+                    (lookup, props) -> new CountyNameParser(lookup)
+            );
+        else if (CountyOsmIdParser.KEY.equals(name))
+            return ImportUnit.create(name, props ->
+                            new IntEncodedValueImpl(name, 31, false),
+                    (lookup, props) -> new CountyOsmIdParser(lookup)
+            );
+        else if (VillageNameParser.KEY.equals(name))
+            return ImportUnit.create(name, props ->
+                            new StringEncodedValue(name, 1800),
+                    (lookup, props) -> new VillageNameParser(lookup)
+            );
+        else if (VillageOsmIdParser.KEY.equals(name))
+            return ImportUnit.create(name, props ->
+                            new IntEncodedValueImpl(name, 31, false),
+                    (lookup, props) -> new VillageOsmIdParser(lookup)
+            );
+        else if (SuburbNameParser.KEY.equals(name))
+            return ImportUnit.create(name, props ->
+                            new StringEncodedValue(name, 200),
+                    (lookup, props) -> new SuburbNameParser(lookup)
+            );
+        else if (SuburbOsmIdParser.KEY.equals(name))
+            return ImportUnit.create(name, props ->
+                            new IntEncodedValueImpl(name, 31, false),
+                    (lookup, props) -> new SuburbOsmIdParser(lookup)
+            );
+        else if (SubareaNameParser.KEY.equals(name))
+            return ImportUnit.create(name, props ->
+                            new StringEncodedValue(name, 150),
+                    (lookup, props) -> new SubareaNameParser(lookup)
+            );
+        else if (SubareaOsmIdParser.KEY.equals(name))
+            return ImportUnit.create(name, props ->
+                            new IntEncodedValueImpl(name, 31, false),
+                    (lookup, props) -> new SubareaOsmIdParser(lookup)
+            );
+        else if (NeighbourhoodNameParser.KEY.equals(name))
+            return ImportUnit.create(name, props ->
+                            new StringEncodedValue(name, 3500),
+                    (lookup, props) -> new NeighbourhoodNameParser(lookup)
+            );
+        else if (NeighbourhoodOsmIdParser.KEY.equals(name))
+            return ImportUnit.create(name, props ->
+                            new IntEncodedValueImpl(name, 31, false),
+                    (lookup, props) -> new NeighbourhoodOsmIdParser(lookup)
             );
         return null;
     }
