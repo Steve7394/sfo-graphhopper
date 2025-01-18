@@ -71,8 +71,6 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import java.util.logging.Level;
-import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static com.graphhopper.util.GHUtility.readCountries;
@@ -97,7 +95,6 @@ public class GraphHopper {
     private CountryRuleFactory countryRuleFactory = null;
     // for custom areas:
     private String customAreasDirectory = "";
-    private String osmAreaDirectory = "";
     // for graph:
     private BaseGraph baseGraph;
     private StorableProperties properties;
@@ -489,7 +486,6 @@ public class GraphHopper {
 
         countryRuleFactory = ghConfig.getBool("country_rules.enabled", false) ? new CountryRuleFactory() : null;
         customAreasDirectory = ghConfig.getString("custom_areas.directory", customAreasDirectory);
-        osmAreaDirectory = ghConfig.getString("osm_areas.directory", osmAreaDirectory);
 
         defaultSegmentSize = ghConfig.getInt("graph.dataaccess.segment_size", defaultSegmentSize);
 
@@ -912,15 +908,12 @@ public class GraphHopper {
 
         List<CustomArea> customAreas = readCountries();
 
-        if (isEmpty(osmAreaDirectory)){
-            logger.info("No osm areas are used, osm_areas.directory not given");
-        }else {
-            AdministrativePolygonParser adminParser = new AdministrativePolygonParser(
-                    new ReaderAdministrativePolygons(osmAreaDirectory)
-            );
-            adminParser.readOSM(_getOSMFile());
-            customAreas.addAll(readCustomAreas(osmAreaDirectory));
-        }
+
+        AdministrativePolygonParser adminParser = new AdministrativePolygonParser(
+                new ReaderAdministrativePolygons(ghLocation)
+        );
+        adminParser.readOSM(_getOSMFile());
+        customAreas.addAll(readCustomAreas(ghLocation));
 
 
         if (isEmpty(customAreasDirectory)) {

@@ -221,8 +221,6 @@ graphhopper:
   # to all tag parsers and custom models. All GeoJSON Features require to have the "id" property.
   # Country borders are included automatically (see countries.geojson).
   custom_areas.directory: ./custom-areas
-  osm_areas.directory: ./osm-areas
-
   #### Country Rules ####
 
   # GraphHopper applies country-specific routing rules during import (not enabled by default).
