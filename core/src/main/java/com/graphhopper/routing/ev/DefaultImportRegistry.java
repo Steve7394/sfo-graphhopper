@@ -428,6 +428,11 @@ public class DefaultImportRegistry implements ImportRegistry {
                             new IntEncodedValueImpl(name, 31, false),
                     (lookup, props) -> new NeighbourhoodOsmIdParser(lookup)
             );
+        else if (CustomPolygonIdParser.KEY.equals(name))
+            return ImportUnit.create(name, props ->
+                            new IntEncodedValueImpl(name, 31, false),
+                    (lookup, props) -> new CustomPolygonIdParser(lookup)
+            );
         return null;
     }
 }
