@@ -140,6 +140,12 @@ public class GraphHopper {
     private String dateRangeParserString = "";
     private String encodedValuesString = "";
 
+    private AreaManager areaManager;
+
+    public AreaManager getAreaManager() {
+        return areaManager;
+    }
+
     public GraphHopper setEncodedValuesString(String encodedValuesString) {
         this.encodedValuesString = encodedValuesString;
         return this;
@@ -773,6 +779,9 @@ public class GraphHopper {
             printInfo();
             process(false);
         } else {
+            List<CustomArea> customAreas = readCountries();
+            customAreas.addAll(readCustomAreas(ghLocation));
+            this.areaManager = new AreaManager(readCustomAreas(customAreasDirectory), customAreas);
             printInfo();
         }
         return this;
@@ -915,14 +924,17 @@ public class GraphHopper {
         adminParser.readOSM(_getOSMFile());
         customAreas.addAll(readCustomAreas(ghLocation));
 
+        List<CustomArea> tempAreas = new ArrayList<>();
 
         if (isEmpty(customAreasDirectory)) {
             logger.info("No custom areas are used, custom_areas.directory not given");
         } else {
             logger.info("Creating custom area index, reading custom areas from: '" + customAreasDirectory + "'");
-            customAreas.addAll(readCustomAreas(customAreasDirectory));
+            tempAreas = readCustomAreas(customAreasDirectory);
         }
 
+        this.areaManager = new AreaManager(new ArrayList<>(tempAreas), new ArrayList<>(customAreas));
+        customAreas.addAll(tempAreas);
         AreaIndex<CustomArea> areaIndex = new AreaIndex<>(customAreas);
         if (countryRuleFactory == null || countryRuleFactory.getCountryToRuleMap().isEmpty()) {
             logger.info("No country rules available");
