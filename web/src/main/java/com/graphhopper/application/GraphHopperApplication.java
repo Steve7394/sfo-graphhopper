@@ -24,6 +24,7 @@ import com.graphhopper.http.CORSFilter;
 import com.graphhopper.http.GraphHopperBundle;
 import com.graphhopper.http.RealtimeBundle;
 import com.graphhopper.navigation.NavigateResource;
+import com.graphhopper.sfo.custompolygon.resource.CustomPolygonResource;
 import com.graphhopper.sfo.rgeocode.resource.ReverseGeocodeResource;
 import io.dropwizard.assets.AssetsBundle;
 import io.dropwizard.core.Application;
@@ -55,6 +56,7 @@ public final class GraphHopperApplication extends Application<GraphHopperServerC
         environment.jersey().register(new RootResource());
         environment.jersey().register(NavigateResource.class);
         environment.jersey().register(ReverseGeocodeResource.class);
+        environment.jersey().register(CustomPolygonResource.class);
         environment.servlets().addFilter("cors", CORSFilter.class).addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), false, "*");
     }
 }
