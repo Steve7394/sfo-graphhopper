@@ -97,7 +97,7 @@ graphhopper:
     province_name, province_osm_id, city_municipality_name, city_municipality_osm_id,
     county_name, county_osm_id, district_name, district_osm_id,
     village_name, village_osm_id, subarea_name, subarea_osm_id,
-    suburb_name, suburb_osm_id, neighbourhood_name, neighbourhood_osm_id
+    suburb_name, suburb_osm_id, neighbourhood_name, neighbourhood_osm_id, custom_polygon
 
   #### Speed, hybrid and flexible mode ####
 
