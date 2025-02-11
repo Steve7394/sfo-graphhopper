@@ -99,6 +99,7 @@ public class ReverseGeocodeService {
 
         response.setNeighbourhood(edge.get(encodingManager.getStringEncodedValue(NeighbourhoodNameParser.KEY)));
         response.setNeighbourhoodOsmId(edge.get(encodingManager.getIntEncodedValue(NeighbourhoodOsmIdParser.KEY)));
+        response.setCustomPolygon(edge.get(encodingManager.getIntEncodedValue(CustomPolygonIdParser.KEY)));
         return response;
     }
 
