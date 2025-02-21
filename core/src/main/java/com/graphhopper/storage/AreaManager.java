@@ -1,17 +1,20 @@
 package com.graphhopper.storage;
 
-import com.graphhopper.routing.ev.IntEncodedValue;
+import com.graphhopper.routing.ev.StringEncodedValue;
 import com.graphhopper.routing.util.AllEdgesIterator;
 import com.graphhopper.routing.util.AreaIndex;
 import com.graphhopper.routing.util.CustomArea;
 import com.graphhopper.routing.util.EncodingManager;
 import com.graphhopper.routing.util.parsers.sfo.CustomPolygonIdParser;
+import com.graphhopper.util.EdgeIterator;
 import com.graphhopper.util.FetchMode;
 import com.graphhopper.util.PointList;
 import com.graphhopper.util.shapes.GHPoint;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class AreaManager {
     private final List<CustomArea> customPolygons;
@@ -49,60 +52,81 @@ public class AreaManager {
     public void addCustomPolygon(CustomArea area, BaseGraph baseGraph, EncodingManager encodingManager) {
         this.customPolygons.add(area);
         isChanged = true;
-        applyChange(baseGraph, encodingManager, area, Integer.parseInt(String.valueOf(area.getProperties().get("id"))));
+        applyChange(baseGraph, encodingManager, area, String.valueOf(area.getProperties().get("id")), false);
     }
 
-    public void removeCustomPolygon(int id, BaseGraph baseGraph, EncodingManager encodingManager) {
+    public void removeCustomPolygon(String id, BaseGraph baseGraph, EncodingManager encodingManager) {
         CustomArea removedCandidate = getCustomArea(id);
         this.customPolygons.remove(removedCandidate);
         isChanged = true;
-        applyChange(baseGraph, encodingManager, removedCandidate, 0);
+        applyChange(baseGraph, encodingManager, removedCandidate, id, true);
     }
 
-    private CustomArea getCustomArea(int id){
-        CustomArea candidate = this.customPolygons.stream().filter(p -> Integer.parseInt(String.valueOf(p.getProperties().get("id"))) == id).findFirst().orElse(null);
+    private CustomArea getCustomArea(String id){
+        CustomArea candidate = this.customPolygons.stream().filter(p -> String.valueOf(p.getProperties().get("id")).equals(id)).findFirst().orElse(null);
         if (candidate == null) {
             throw new RuntimeException("there is no custom polygon with id: " + id);
         }
         return candidate;
     }
 
-    public void updateCustomPolygon(int id, CustomArea area, BaseGraph baseGraph, EncodingManager encodingManager){
+    public void updateCustomPolygon(String id, CustomArea area, BaseGraph baseGraph, EncodingManager encodingManager){
         CustomArea candidate = getCustomArea(id);
         this.customPolygons.remove(candidate);
         this.customPolygons.add(area);
         isChanged = true;
         AllEdgesIterator edge = baseGraph.getAllEdges();
-        IntEncodedValue customPolygonEncoder = encodingManager.getIntEncodedValue(CustomPolygonIdParser.KEY);
+        StringEncodedValue customPolygonEncoder = encodingManager.getStringEncodedValue(CustomPolygonIdParser.KEY);
         AreaIndex<CustomArea> rTempAreaIndex = getTemporaryAreaIndex(candidate);
         AreaIndex<CustomArea> aTempAreaIndex = getTemporaryAreaIndex(area);
         PointList points;
         GHPoint point;
+        List<String> values;
         while (edge.next()) {
             points = edge.fetchWayGeometry(FetchMode.ALL);
             point = points.get(points.size() / 2);
             if (rTempAreaIndex.query(point.getLat(), point.getLon()).size() != 0) {
-                edge.set(customPolygonEncoder, 0);
+                values = decode(edge, customPolygonEncoder);
+                values.remove(id);
+                edge.set(customPolygonEncoder, encode(values));
             }
             if (aTempAreaIndex.query(point.getLat(), point.getLon()).size() != 0) {
-                edge.set(customPolygonEncoder, id);
+                values = decode(edge, customPolygonEncoder);
+                if (!values.contains(id)) {values.add(id);}
+                edge.set(customPolygonEncoder, encode(values));
             }
         }
     }
 
-    private void applyChange(BaseGraph baseGraph, EncodingManager encodingManager, CustomArea area, int value) {
+    private void applyChange(BaseGraph baseGraph, EncodingManager encodingManager, CustomArea area, String value, boolean isRemove) {
         AllEdgesIterator edge = baseGraph.getAllEdges();
-        IntEncodedValue customPolygonEncoder = encodingManager.getIntEncodedValue(CustomPolygonIdParser.KEY);
         AreaIndex<CustomArea> tempAreaIndex = getTemporaryAreaIndex(area);
         PointList points;
         GHPoint point;
+        StringEncodedValue customPolygonEncoder = encodingManager.getStringEncodedValue(CustomPolygonIdParser.KEY);
         while (edge.next()) {
             points = edge.fetchWayGeometry(FetchMode.ALL);
             point = points.get(points.size() / 2);
             if (tempAreaIndex.query(point.getLat(), point.getLon()).size() != 0) {
-                edge.set(customPolygonEncoder, value);
+                List<String> values = decode(edge, customPolygonEncoder);
+                if (isRemove) values.remove(value);
+                else {
+                    if (!values.contains(value)) values.add(value);
+                }
+                edge.set(customPolygonEncoder, encode(values));
             }
         }
+    }
+
+    private List<String> decode(EdgeIterator edgeIterator, StringEncodedValue customPolygonEncoder){
+        return Arrays.stream(edgeIterator.get(customPolygonEncoder).split(",")).collect(Collectors.toList());
+    }
+
+    private String encode(List<String> values) {
+        if (values.size() == 0){
+            values.add("0");
+        }
+        return String.join(",", values);
     }
 
     private AreaIndex<CustomArea> getTemporaryAreaIndex(CustomArea area) {

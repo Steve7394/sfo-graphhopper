@@ -5,7 +5,7 @@ import javax.validation.constraints.NotNull;
 public class CustomPolygon {
 
     @NotNull
-    private int id;
+    private long id;
 
     @NotNull
     private String geometry;
@@ -17,11 +17,11 @@ public class CustomPolygon {
         this.geometry = geometry;
     }
 
-    public int getId() {
+    public long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(long id) {
         this.id = id;
     }
 

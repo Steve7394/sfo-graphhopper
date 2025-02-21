@@ -14,6 +14,7 @@ import com.graphhopper.storage.index.LocationIndex;
 import com.graphhopper.util.EdgeIteratorState;
 import com.graphhopper.util.shapes.GHPoint;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class ReverseGeocodeService {
@@ -99,7 +100,10 @@ public class ReverseGeocodeService {
 
         response.setNeighbourhood(edge.get(encodingManager.getStringEncodedValue(NeighbourhoodNameParser.KEY)));
         response.setNeighbourhoodOsmId(edge.get(encodingManager.getIntEncodedValue(NeighbourhoodOsmIdParser.KEY)));
-        response.setCustomPolygon(edge.get(encodingManager.getIntEncodedValue(CustomPolygonIdParser.KEY)));
+        List<Long> areas = Arrays.stream(edge.get(encodingManager.getStringEncodedValue(CustomPolygonIdParser.KEY)).split(",")).filter(v -> !v.equals("0")).map(Long::valueOf).toList();
+        response.setCustomPolygon(
+                areas
+        );
         return response;
     }
 

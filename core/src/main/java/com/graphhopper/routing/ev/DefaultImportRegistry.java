@@ -430,7 +430,7 @@ public class DefaultImportRegistry implements ImportRegistry {
             );
         else if (CustomPolygonIdParser.KEY.equals(name))
             return ImportUnit.create(name, props ->
-                            new IntEncodedValueImpl(name, 31, false),
+                            new StringEncodedValue(name, 5000, false),
                     (lookup, props) -> new CustomPolygonIdParser(lookup)
             );
         return null;

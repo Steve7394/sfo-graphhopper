@@ -36,6 +36,7 @@ public class CustomPolygonService {
     }
 
     public void save(CustomPolygon area){
+        validate(area);
         graphHopper.getAreaManager().addCustomPolygon(
                 customPolygon2CustomArea(area),
                 graphHopper.getBaseGraph(),
@@ -43,12 +44,13 @@ public class CustomPolygonService {
         );
     }
 
-    public void update(CustomPolygon area, int id){
+    public void update(CustomPolygon area, long id){
+        validate(id);
         if (id != area.getId()){
             throw new RuntimeException("the id in path param: " + id + " do not match with area id: " + area.getId());
         }
         graphHopper.getAreaManager().updateCustomPolygon(
-                id,
+                String.valueOf(id),
                 customPolygon2CustomArea(area),
                 graphHopper.getBaseGraph(),
                 encodingManager
@@ -56,8 +58,9 @@ public class CustomPolygonService {
     }
 
     public void delete(int id){
+        validate(id);
         graphHopper.getAreaManager().removeCustomPolygon(
-                id,
+                String.valueOf(id),
                 graphHopper.getBaseGraph(),
                 encodingManager
         );
@@ -76,5 +79,14 @@ public class CustomPolygonService {
                 Integer.parseInt(String.valueOf(area.getProperties().get("id"))),
                 Polyline6Util.encodePolyline6(Arrays.stream(area.getBorders().get(0).getCoordinates()).toList())
         );
+    }
+
+    private void validate(long id){
+        if (id == 0){
+            throw new IllegalArgumentException("The polygon id can not be zero");
+        }
+    }
+    private void validate(CustomPolygon polygon){
+        validate(polygon.getId());
     }
 }

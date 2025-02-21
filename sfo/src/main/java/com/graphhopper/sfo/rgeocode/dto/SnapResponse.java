@@ -1,6 +1,6 @@
 package com.graphhopper.sfo.rgeocode.dto;
 
-import javax.inject.Inject;
+import java.util.List;
 
 public class SnapResponse {
     private String street;
@@ -35,7 +35,7 @@ public class SnapResponse {
     private String neighbourhood;
     private Integer neighbourhoodOsmId;
 
-    private Integer customPolygon;
+    private List<Long> customPolygon;
 
     public SnapResponse(){}
 
@@ -211,11 +211,11 @@ public class SnapResponse {
         this.cityOsmId = cityOsmId;
     }
 
-    public Integer getCustomPolygon() {
+    public List<Long> getCustomPolygon() {
         return customPolygon;
     }
 
-    public void setCustomPolygon(Integer customPolygon) {
+    public void setCustomPolygon(List<Long> customPolygon) {
         this.customPolygon = customPolygon;
     }
 }
