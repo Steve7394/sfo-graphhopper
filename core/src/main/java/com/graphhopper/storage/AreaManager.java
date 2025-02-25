@@ -10,6 +10,8 @@ import com.graphhopper.util.EdgeIterator;
 import com.graphhopper.util.FetchMode;
 import com.graphhopper.util.PointList;
 import com.graphhopper.util.shapes.GHPoint;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -21,6 +23,7 @@ public class AreaManager {
     private final List<CustomArea> administrativePolygons;
     private AreaIndex<CustomArea> areaIndex;
     private boolean isChanged = false;
+    private static final Logger LOGGER = LoggerFactory.getLogger(AreaManager.class);
 
     public AreaManager(List<CustomArea> customPolygons, List<CustomArea> administrativePolygons) {
         this.customPolygons = customPolygons;
@@ -71,7 +74,14 @@ public class AreaManager {
     }
 
     public void updateCustomPolygon(String id, CustomArea area, BaseGraph baseGraph, EncodingManager encodingManager){
-        CustomArea candidate = getCustomArea(id);
+        CustomArea candidate;
+        try {
+            candidate = getCustomArea(id);
+        } catch (RuntimeException e) {
+            LOGGER.warn(e.getLocalizedMessage());
+            addCustomPolygon(area, baseGraph, encodingManager);
+            return;
+        }
         this.customPolygons.remove(candidate);
         this.customPolygons.add(area);
         isChanged = true;
