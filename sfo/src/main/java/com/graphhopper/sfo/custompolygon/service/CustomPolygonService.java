@@ -27,8 +27,8 @@ public class CustomPolygonService {
         return graphHopper.getAreaManager().getCustomPolygons().stream().map(this::customArea2Polygon).collect(Collectors.toList());
     }
 
-    public CustomPolygon getById(int id){
-        CustomArea area = graphHopper.getAreaManager().getCustomPolygons().stream().filter(p -> Integer.parseInt(String.valueOf(p.getProperties().get("id"))) == id).findFirst().orElse(null);
+    public CustomPolygon getById(long id){
+        CustomArea area = graphHopper.getAreaManager().getCustomPolygons().stream().filter(p -> Long.parseLong(String.valueOf(p.getProperties().get("id"))) == id).findFirst().orElse(null);
         if (area == null){
             throw new RuntimeException("there is no custom area with id: " + id);
         }
@@ -57,7 +57,7 @@ public class CustomPolygonService {
         );
     }
 
-    public void delete(int id){
+    public void delete(long id){
         validate(id);
         graphHopper.getAreaManager().removeCustomPolygon(
                 String.valueOf(id),
@@ -76,7 +76,7 @@ public class CustomPolygonService {
 
     private CustomPolygon customArea2Polygon(CustomArea area){
         return new CustomPolygon(
-                Integer.parseInt(String.valueOf(area.getProperties().get("id"))),
+                Long.parseLong(String.valueOf(area.getProperties().get("id"))),
                 Polyline6Util.encodePolyline6(Arrays.stream(area.getBorders().get(0).getCoordinates()).toList())
         );
     }

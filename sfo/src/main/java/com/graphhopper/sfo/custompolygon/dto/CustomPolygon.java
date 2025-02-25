@@ -12,7 +12,7 @@ public class CustomPolygon {
 
     public CustomPolygon(){}
 
-    public CustomPolygon(int id, String geometry) {
+    public CustomPolygon(long id, String geometry) {
         this.id = id;
         this.geometry = geometry;
     }

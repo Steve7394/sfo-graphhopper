@@ -29,7 +29,7 @@ public class CustomPolygonResource {
     @GET
     @Path("/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response get(@PathParam("id") int id)
+    public Response get(@PathParam("id") long id)
     {
         return Response.status(Response.Status.OK).entity(customPolygonService.getById(id)).build();
     }
@@ -48,7 +48,7 @@ public class CustomPolygonResource {
     @Path("/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response update(@PathParam("id") int id, CustomPolygon polygon)
+    public Response update(@PathParam("id") long id, CustomPolygon polygon)
     {
         customPolygonService.update(polygon, id);
         return Response.status(Response.Status.OK).build();
@@ -57,7 +57,7 @@ public class CustomPolygonResource {
     @DELETE
     @Path("/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response delete(@PathParam("id") int id)
+    public Response delete(@PathParam("id") long id)
     {
         customPolygonService.delete(id);
         return Response.status(Response.Status.OK).build();
