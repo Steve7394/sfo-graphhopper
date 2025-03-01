@@ -1,5 +1,6 @@
 package com.graphhopper.storage;
 
+
 import com.graphhopper.routing.ev.StringEncodedValue;
 import com.graphhopper.routing.util.AllEdgesIterator;
 import com.graphhopper.routing.util.AreaIndex;
@@ -13,6 +14,7 @@ import com.graphhopper.util.shapes.GHPoint;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -24,11 +26,16 @@ public class AreaManager {
     private AreaIndex<CustomArea> areaIndex;
     private boolean isChanged = false;
     private static final Logger LOGGER = LoggerFactory.getLogger(AreaManager.class);
+    private final CustomAreaFileManager mainFileManager;
+    private final CustomAreaFileManager tempFileManager;
+    private final static String REMOVE_KEY = "SHOULD_REMOVE";
 
-    public AreaManager(List<CustomArea> customPolygons, List<CustomArea> administrativePolygons) {
+    public AreaManager(List<CustomArea> customPolygons, List<CustomArea> administrativePolygons, String mainDir, String tempDir) {
         this.customPolygons = customPolygons;
         this.administrativePolygons = administrativePolygons;
         this.areaIndex = buildAreaIndex();
+        this.mainFileManager = new CustomAreaFileManager(mainDir, "geojson");
+        this.tempFileManager = new CustomAreaFileManager(tempDir, "temp");
     }
 
     public List<CustomArea> getCustomPolygons(){
@@ -55,7 +62,10 @@ public class AreaManager {
     public void addCustomPolygon(CustomArea area, BaseGraph baseGraph, EncodingManager encodingManager) {
         this.customPolygons.add(area);
         isChanged = true;
-        applyChange(baseGraph, encodingManager, area, String.valueOf(area.getProperties().get("id")), false);
+        String id = String.valueOf(area.getProperties().get("id"));
+        applyChange(baseGraph, encodingManager, area, id, false);
+        mainFileManager.write(id, area);
+        tempFileManager.write(id, area);
     }
 
     public void removeCustomPolygon(String id, BaseGraph baseGraph, EncodingManager encodingManager) {
@@ -63,6 +73,13 @@ public class AreaManager {
         this.customPolygons.remove(removedCandidate);
         isChanged = true;
         applyChange(baseGraph, encodingManager, removedCandidate, id, true);
+        mainFileManager.delete(id);
+        try {
+            tempFileManager.delete(id);
+        } catch (UncheckedIOException e) {
+            removedCandidate.getProperties().put(REMOVE_KEY, "");
+            tempFileManager.write(id, removedCandidate);
+        }
     }
 
     private CustomArea getCustomArea(String id){
@@ -106,6 +123,16 @@ public class AreaManager {
                 edge.set(customPolygonEncoder, encode(values));
             }
         }
+        mainFileManager.delete(id);
+        mainFileManager.write(id, area);
+        try {
+            tempFileManager.delete(id);
+        }catch (UncheckedIOException e) {
+            candidate.getProperties().put(REMOVE_KEY, "");
+            tempFileManager.write(id, candidate);
+        }finally {
+            tempFileManager.write(id, area);
+        }
     }
 
     private void applyChange(BaseGraph baseGraph, EncodingManager encodingManager, CustomArea area, String value, boolean isRemove) {
@@ -133,7 +160,7 @@ public class AreaManager {
     }
 
     private String encode(List<String> values) {
-        if (values.size() == 0){
+        if (values.isEmpty()){
             values.add("0");
         }
         return String.join(",", values);
@@ -141,6 +168,12 @@ public class AreaManager {
 
     private AreaIndex<CustomArea> getTemporaryAreaIndex(CustomArea area) {
         return new AreaIndex<>(List.of(area));
+    }
+
+    public void applyTemp(BaseGraph baseGraph, EncodingManager encodingManager){
+        tempFileManager.getAllCustomAreas().forEach(a -> {
+            applyChange(baseGraph, encodingManager, a,  String.valueOf(a.getProperties().get("id")), a.getProperties().containsKey(REMOVE_KEY));
+        });
     }
 
 

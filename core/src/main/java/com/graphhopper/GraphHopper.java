@@ -781,7 +781,8 @@ public class GraphHopper {
         } else {
             List<CustomArea> customAreas = readCountries();
             customAreas.addAll(readCustomAreas(ghLocation));
-            this.areaManager = new AreaManager(readCustomAreas(customAreasDirectory), customAreas);
+            this.areaManager = new AreaManager(readCustomAreas(customAreasDirectory), customAreas, customAreasDirectory, ghLocation);
+            areaManager.applyTemp(baseGraph, encodingManager);
             printInfo();
         }
         return this;
@@ -933,7 +934,7 @@ public class GraphHopper {
             tempAreas = readCustomAreas(customAreasDirectory);
         }
 
-        this.areaManager = new AreaManager(new ArrayList<>(tempAreas), new ArrayList<>(customAreas));
+        this.areaManager = new AreaManager(new ArrayList<>(tempAreas), new ArrayList<>(customAreas), customAreasDirectory, ghLocation);
         customAreas.addAll(tempAreas);
         AreaIndex<CustomArea> areaIndex = new AreaIndex<>(customAreas);
         if (countryRuleFactory == null || countryRuleFactory.getCountryToRuleMap().isEmpty()) {
