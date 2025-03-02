@@ -14,6 +14,7 @@ import com.graphhopper.util.shapes.GHPoint;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
+import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -59,25 +60,42 @@ public class AreaManager {
     }
 
     public void addCustomPolygon(CustomArea area, BaseGraph baseGraph, EncodingManager encodingManager) {
-        this.customPolygons.add(area);
-        isChanged = true;
         String id = String.valueOf(area.getProperties().get("id"));
-        applyChange(baseGraph, encodingManager, area, id, false);
-        mainFileManager.write(id, area);
-        tempFileManager.write(id, area);
+        if (mainFileManager.write(id, area)){
+            if (tempFileManager.write(id, area)){
+                applyChange(baseGraph, encodingManager, area, id, false);
+                this.customPolygons.add(area);
+                isChanged = true;
+                return;
+            }else{
+                mainFileManager.delete(id);
+                throw new UncheckedIOException(new IOException("Can not write file on: " + tempFileManager.getDirectory()));
+            }
+        }
+        throw new UncheckedIOException(new IOException("Can not write file on: " + mainFileManager.getDirectory()));
     }
 
     public void removeCustomPolygon(String id, BaseGraph baseGraph, EncodingManager encodingManager) {
         CustomArea removedCandidate = getCustomArea(id);
-        this.customPolygons.remove(removedCandidate);
-        isChanged = true;
-        applyChange(baseGraph, encodingManager, removedCandidate, id, true);
-        mainFileManager.delete(id);
-        try {
-            tempFileManager.delete(id);
-        } catch (UncheckedIOException e) {
-            tempFileManager.logicalRemove(id, removedCandidate);
+        if (mainFileManager.delete(id)){
+            if (tempFileManager.delete(id)){
+                applyChange(baseGraph, encodingManager, removedCandidate, id, true);
+                this.customPolygons.remove(removedCandidate);
+                isChanged = true;
+                return;
+            }else{
+                if (tempFileManager.logicalRemove(id, removedCandidate)){
+                    applyChange(baseGraph, encodingManager, removedCandidate, id, true);
+                    this.customPolygons.remove(removedCandidate);
+                    isChanged = true;
+                    return;
+                }else{
+                    mainFileManager.write(id, removedCandidate);
+                    throw new UncheckedIOException(new IOException("Can not remove or write file on: " + tempFileManager.getDirectory()));
+                }
+            }
         }
+        throw new UncheckedIOException(new IOException("Can not remove file on: " + mainFileManager.getDirectory()));
     }
 
     private CustomArea getCustomArea(String id){
@@ -89,47 +107,15 @@ public class AreaManager {
     }
 
     public void updateCustomPolygon(String id, CustomArea area, BaseGraph baseGraph, EncodingManager encodingManager){
-        CustomArea candidate;
         try {
-            candidate = getCustomArea(id);
+            getCustomArea(id);
         } catch (RuntimeException e) {
             LOGGER.warn(e.getLocalizedMessage());
             addCustomPolygon(area, baseGraph, encodingManager);
             return;
         }
-        this.customPolygons.remove(candidate);
-        this.customPolygons.add(area);
-        isChanged = true;
-        AllEdgesIterator edge = baseGraph.getAllEdges();
-        StringEncodedValue customPolygonEncoder = encodingManager.getStringEncodedValue(CustomPolygonIdParser.KEY);
-        AreaIndex<CustomArea> rTempAreaIndex = getTemporaryAreaIndex(candidate);
-        AreaIndex<CustomArea> aTempAreaIndex = getTemporaryAreaIndex(area);
-        PointList points;
-        GHPoint point;
-        List<String> values;
-        while (edge.next()) {
-            points = edge.fetchWayGeometry(FetchMode.ALL);
-            point = points.get(points.size() / 2);
-            if (rTempAreaIndex.query(point.getLat(), point.getLon()).size() != 0) {
-                values = decode(edge, customPolygonEncoder);
-                values.remove(id);
-                edge.set(customPolygonEncoder, encode(values));
-            }
-            if (aTempAreaIndex.query(point.getLat(), point.getLon()).size() != 0) {
-                values = decode(edge, customPolygonEncoder);
-                if (!values.contains(id)) {values.add(id);}
-                edge.set(customPolygonEncoder, encode(values));
-            }
-        }
-        mainFileManager.delete(id);
-        mainFileManager.write(id, area);
-        try {
-            tempFileManager.delete(id);
-        }catch (UncheckedIOException e) {
-            tempFileManager.logicalRemove(id, candidate);
-        }finally {
-            tempFileManager.write(id, area);
-        }
+        this.removeCustomPolygon(id, baseGraph, encodingManager);
+        this.addCustomPolygon(area, baseGraph, encodingManager);
     }
 
     private void applyChange(BaseGraph baseGraph, EncodingManager encodingManager, CustomArea area, String value, boolean isRemove) {

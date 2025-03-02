@@ -35,12 +35,17 @@ public class CustomAreaFileManager {
         this.suffix = suffix;
     }
 
-    public void delete(String name){
+    public String getDirectory() {
+        return directory.toString();
+    }
+
+    public boolean delete(String name){
         Path path = directory.resolve(name + "." + suffix);
         try {
             Files.delete(path);
+            return true;
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            return false;
         }
     }
 
@@ -54,22 +59,23 @@ public class CustomAreaFileManager {
         }
     }
 
-    private void write(String name, CustomArea area, boolean logicalRemove){
+    private boolean write(String name, CustomArea area, boolean logicalRemove){
         Path path = directory.resolve(logicalRemove ? name + "." + LOGICAL_REMOVE_SUFFIX: name + "." + this.suffix);
         JsonFeature jsonFeature = new JsonFeature(area.getProperties().get("id").toString(), "MULTI_POLYGON", null, new MultiPolygon(area.getBorders().toArray(new Polygon[]{}), geometryFactory), area.getProperties());
         try {
             this.objectMapper.writeValue(path.toFile(), jsonFeature);
+            return true;
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            return false;
         }
     }
 
-    public void write(String name, CustomArea area) {
-        write(name, area, false);
+    public boolean write(String name, CustomArea area) {
+        return write(name, area, false);
     }
 
-    public void logicalRemove(String name, CustomArea area){
-        write(name, area, true);
+    public boolean logicalRemove(String name, CustomArea area){
+        return write(name, area, true);
     }
 
     public List<CustomArea> getAllCustomAreas(boolean logicalRemove){
