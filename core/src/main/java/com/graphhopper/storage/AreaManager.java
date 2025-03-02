@@ -28,13 +28,12 @@ public class AreaManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(AreaManager.class);
     private final CustomAreaFileManager mainFileManager;
     private final CustomAreaFileManager tempFileManager;
-    private final static String REMOVE_KEY = "SHOULD_REMOVE";
 
     public AreaManager(List<CustomArea> customPolygons, List<CustomArea> administrativePolygons, String mainDir, String tempDir) {
         this.customPolygons = customPolygons;
         this.administrativePolygons = administrativePolygons;
         this.areaIndex = buildAreaIndex();
-        this.mainFileManager = new CustomAreaFileManager(mainDir, "geojson");
+        this.mainFileManager = new CustomAreaFileManager(mainDir, "polygon");
         this.tempFileManager = new CustomAreaFileManager(tempDir, "temp");
     }
 
@@ -77,8 +76,7 @@ public class AreaManager {
         try {
             tempFileManager.delete(id);
         } catch (UncheckedIOException e) {
-            removedCandidate.getProperties().put(REMOVE_KEY, "");
-            tempFileManager.write(id, removedCandidate);
+            tempFileManager.logicalRemove(id, removedCandidate);
         }
     }
 
@@ -128,8 +126,7 @@ public class AreaManager {
         try {
             tempFileManager.delete(id);
         }catch (UncheckedIOException e) {
-            candidate.getProperties().put(REMOVE_KEY, "");
-            tempFileManager.write(id, candidate);
+            tempFileManager.logicalRemove(id, candidate);
         }finally {
             tempFileManager.write(id, area);
         }
@@ -171,8 +168,11 @@ public class AreaManager {
     }
 
     public void applyTemp(BaseGraph baseGraph, EncodingManager encodingManager){
-        tempFileManager.getAllCustomAreas().forEach(a -> {
-            applyChange(baseGraph, encodingManager, a,  String.valueOf(a.getProperties().get("id")), a.getProperties().containsKey(REMOVE_KEY));
+        tempFileManager.getAllCustomAreas(false).forEach(a -> {
+            applyChange(baseGraph, encodingManager, a,  String.valueOf(a.getProperties().get("id")), false);
+        });
+        tempFileManager.getAllCustomAreas(true).forEach(a -> {
+            applyChange(baseGraph, encodingManager, a,  String.valueOf(a.getProperties().get("id")), true);
         });
     }
 

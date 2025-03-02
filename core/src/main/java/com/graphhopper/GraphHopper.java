@@ -781,7 +781,7 @@ public class GraphHopper {
         } else {
             List<CustomArea> customAreas = readCountries();
             customAreas.addAll(readCustomAreas(ghLocation));
-            this.areaManager = new AreaManager(readCustomAreas(customAreasDirectory), customAreas, customAreasDirectory, ghLocation);
+            this.areaManager = new AreaManager(readCustomAreasFeature(customAreasDirectory), customAreas, customAreasDirectory, ghLocation);
             areaManager.applyTemp(baseGraph, encodingManager);
             printInfo();
         }
@@ -931,7 +931,7 @@ public class GraphHopper {
             logger.info("No custom areas are used, custom_areas.directory not given");
         } else {
             logger.info("Creating custom area index, reading custom areas from: '" + customAreasDirectory + "'");
-            tempAreas = readCustomAreas(customAreasDirectory);
+            tempAreas = readCustomAreasFeature(customAreasDirectory);
         }
 
         this.areaManager = new AreaManager(new ArrayList<>(tempAreas), new ArrayList<>(customAreas), customAreasDirectory, ghLocation);
@@ -1005,6 +1005,26 @@ public class GraphHopper {
             throw new UncheckedIOException(e);
         }
         return jsonFeatureCollections.stream().flatMap(j -> j.getFeatures().stream())
+                .map(CustomArea::fromJsonFeature)
+                .collect(Collectors.toList());
+    }
+
+    private List<CustomArea> readCustomAreasFeature(String directory) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JtsModule());
+        final Path bordersDirectory = Paths.get(directory);
+        List<JsonFeature> jsonFeatures = new ArrayList<>();
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(bordersDirectory, "*.{polygon}")) {
+            for (Path borderFile : stream) {
+                try (BufferedReader reader = Files.newBufferedReader(borderFile, StandardCharsets.UTF_8)) {
+                    JsonFeature jsonFeature = objectMapper.readValue(reader, JsonFeature.class);
+                    jsonFeatures.add(jsonFeature);
+                }
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+        return jsonFeatures.stream()
                 .map(CustomArea::fromJsonFeature)
                 .collect(Collectors.toList());
     }

@@ -4,6 +4,9 @@ import com.bedatadriven.jackson.datatype.jts.JtsModule;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.graphhopper.routing.util.CustomArea;
 import com.graphhopper.util.JsonFeature;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.MultiPolygon;
+import org.locationtech.jts.geom.Polygon;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,6 +27,8 @@ public class CustomAreaFileManager {
     private final Path directory;
     private final String suffix;
     private static final Logger LOGGER = LoggerFactory.getLogger(CustomAreaFileManager.class);
+    private static final String LOGICAL_REMOVE_SUFFIX = "LOGICAL_REMOVE";
+    private final GeometryFactory geometryFactory = new GeometryFactory();
     public CustomAreaFileManager(String directory, String suffix) {
         this.objectMapper.registerModule(new JtsModule());
         this.directory = Paths.get(directory);
@@ -49,9 +54,9 @@ public class CustomAreaFileManager {
         }
     }
 
-    public void write(String name, CustomArea area) {
-        Path path = directory.resolve(name + "." + suffix);
-        JsonFeature jsonFeature = new JsonFeature(area.getProperties().get("id").toString(), "POLYGON", null, area.getBorders().get(0), area.getProperties());
+    private void write(String name, CustomArea area, boolean logicalRemove){
+        Path path = directory.resolve(logicalRemove ? name + "." + LOGICAL_REMOVE_SUFFIX: name + "." + this.suffix);
+        JsonFeature jsonFeature = new JsonFeature(area.getProperties().get("id").toString(), "MULTI_POLYGON", null, new MultiPolygon(area.getBorders().toArray(new Polygon[]{}), geometryFactory), area.getProperties());
         try {
             this.objectMapper.writeValue(path.toFile(), jsonFeature);
         } catch (IOException e) {
@@ -59,9 +64,17 @@ public class CustomAreaFileManager {
         }
     }
 
-    public List<CustomArea> getAllCustomAreas(){
+    public void write(String name, CustomArea area) {
+        write(name, area, false);
+    }
+
+    public void logicalRemove(String name, CustomArea area){
+        write(name, area, true);
+    }
+
+    public List<CustomArea> getAllCustomAreas(boolean logicalRemove){
         List<JsonFeature> jsonFeatures = new ArrayList<>();
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(this.directory, "*." + this.suffix)) {
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(this.directory, logicalRemove ? "*." + LOGICAL_REMOVE_SUFFIX : "*." + this.suffix)) {
             for (Path borderFile : stream) {
                 try (BufferedReader reader = Files.newBufferedReader(borderFile, StandardCharsets.UTF_8)) {
                     JsonFeature jsonFeature = objectMapper.readValue(reader, JsonFeature.class);
