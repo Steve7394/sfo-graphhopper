@@ -1,0 +1,15 @@
+services:
+  graphhopper:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8989:8989"
+    volumes:
+      - ./graph-cache:/app/graph-cache
+      - ./custom-areas:/app/custom-areas
+      - ./srtmprovide:/app/srtmprovider
+      - ./.m2:/root/.m2
+    environment:
+      - JAVA_OPTS=-Xmx4g -Xms15g
+    command: ["server", "/app/config-example.yml"]
