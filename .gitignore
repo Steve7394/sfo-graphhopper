@@ -44,3 +44,5 @@ local.properties
 /graph-cache
 /osm-areas
 package-lock.json
+/.m2
+.m2/*
