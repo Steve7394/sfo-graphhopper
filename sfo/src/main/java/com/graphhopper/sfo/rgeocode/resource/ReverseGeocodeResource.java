@@ -1,7 +1,7 @@
 package com.graphhopper.sfo.rgeocode.resource;
 
 import com.graphhopper.GraphHopper;
-import com.graphhopper.routing.util.EncodingManager;
+import com.graphhopper.sfo.rgeocode.dto.MapMatchResponse;
 import com.graphhopper.sfo.rgeocode.dto.SnapRequest;
 import com.graphhopper.sfo.rgeocode.dto.SnapResponse;
 import com.graphhopper.sfo.rgeocode.service.ReverseGeocodeService;
@@ -21,8 +21,8 @@ public class ReverseGeocodeResource {
     private final ReverseGeocodeService reverseGeocodeService;
 
     @Inject
-    public ReverseGeocodeResource(GraphHopper graphhopper, EncodingManager encodingManager) {
-        this.reverseGeocodeService = new ReverseGeocodeService(encodingManager, graphhopper.getLocationIndex());
+    public ReverseGeocodeResource(GraphHopper graphhopper) {
+        this.reverseGeocodeService = new ReverseGeocodeService(graphhopper);
     }
 
     @POST
@@ -47,11 +47,25 @@ public class ReverseGeocodeResource {
     }
 
     @GET
-    @Path("/{coordinatesArray : .+}")
+    @Path("{coordinatesArray : .+}")
     @Produces({MediaType.APPLICATION_JSON})
-    public Response doGetMultiPoint(@Context HttpServletRequest httpReq){
+    public Response doGetMultiPointBySnap(@Context HttpServletRequest httpReq){
         List<GHPoint> points = Utils.getPointsFromRequest(httpReq, "/reverse-geocode/");
         SnapResponse response = reverseGeocodeService.createSnapResponse(points);
+        return Response.status(Response.Status.OK)
+                .entity(response)
+                .build();
+    }
+
+    @GET
+    @Path("/match/{coordinatesArray : .+}")
+    @Produces({MediaType.APPLICATION_JSON})
+    public Response doGetMultiPointByMatch(
+            @Context HttpServletRequest httpReq,
+            @QueryParam("gpsError") @DefaultValue("10") double gpsError
+    ){
+        List<GHPoint> points = Utils.getPointsFromRequest(httpReq, "/reverse-geocode/match/");
+        MapMatchResponse response = reverseGeocodeService.createMapMatchResponse(points, gpsError);
         return Response.status(Response.Status.OK)
                 .entity(response)
                 .build();

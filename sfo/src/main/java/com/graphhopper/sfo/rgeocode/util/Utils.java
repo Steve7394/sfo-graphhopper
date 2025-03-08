@@ -1,6 +1,7 @@
 package com.graphhopper.sfo.rgeocode.util;
 
 
+import com.graphhopper.jackson.Gpx;
 import com.graphhopper.util.shapes.GHPoint;
 
 import javax.servlet.http.HttpServletRequest;
@@ -59,6 +60,21 @@ public class Utils {
         }
 
         return weightedSum / totalWeight;
+    }
+
+    public static Gpx createGpxFromPointList(List<GHPoint> points){
+        Gpx gpx = new Gpx();
+        Gpx.Trk trk = new Gpx.Trk();
+        Gpx.Trkseg trkseg = new Gpx.Trkseg();
+        for (GHPoint point : points) {
+            Gpx.Trkpt trkpt = new Gpx.Trkpt();
+            trkpt.lat = point.getLat();
+            trkpt.lon = point.getLon();
+            trkseg.trkpt.add(trkpt);
+        }
+        trk.trkseg.add(trkseg);
+        gpx.trk.add(trk);
+        return gpx;
     }
 
 }
