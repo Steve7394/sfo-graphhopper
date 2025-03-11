@@ -44,7 +44,7 @@ public class CustomPolygonResource {
         return Response.status(Response.Status.OK).build();
     }
 
-    @PUT
+    @POST
     @Path("/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
@@ -54,8 +54,8 @@ public class CustomPolygonResource {
         return Response.status(Response.Status.OK).build();
     }
 
-    @DELETE
-    @Path("/{id}")
+    @POST
+    @Path("/delete/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response delete(@PathParam("id") long id)
     {
