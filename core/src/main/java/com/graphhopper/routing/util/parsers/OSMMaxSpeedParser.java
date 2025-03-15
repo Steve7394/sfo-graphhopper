@@ -55,11 +55,11 @@ public class OSMMaxSpeedParser implements TagParser {
      *         or {@link MaxSpeed.MAXSPEED_MISSING} in case there is no valid maxspeed tagged for this way in this direction.
      */
     public static double parseMaxSpeed(ReaderWay way, boolean reverse) {
-        double directedMaxSpeed = parseMaxSpeedTag(way, reverse ? "maxspeedd:backward" : "maxspeedd:forward");
+        double directedMaxSpeed = parseMaxSpeedTag(way, reverse ? "maxspeed:backward" : "maxspeed:forward");
         if (directedMaxSpeed != MAXSPEED_MISSING)
             return directedMaxSpeed;
         else {
-            return parseMaxSpeedTag(way, "maxspeedd");
+            return parseMaxSpeedTag(way, "maxspeed");
         }
     }
 
