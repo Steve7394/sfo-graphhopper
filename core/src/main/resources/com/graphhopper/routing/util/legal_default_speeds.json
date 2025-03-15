@@ -508,53 +508,71 @@
     "oneway tertiary": {
       "filter": "{tertiary} and {oneway}"
     },
+    "two way primary": {
+      "filter": "{primary} and !{oneway}"
+    },
+    "two way secondary": {
+      "filter": "{secondary} and !{oneway}"
+    },
+    "two way tertiary": {
+      "filter": "{tertiary} and !{oneway}"
+    },
     "urban service road": {
       "filter": "{urban} and {service road}"
     },
     "urban trunk": {
       "filter": "{urban} and {trunk}"
     },
-    "urban primary": {
-      "filter": "{urban} and {primary}"
+    "urban unclassified": {
+      "filter": "{urban} and {unclassified}"
     },
-    "urban secondary": {
-      "filter": "{urban} and {secondary}"
+    "urban two way primary": {
+      "filter": "{urban} and {two way primary}"
     },
-    "urban tertiary": {
-      "filter": "{urban} and {tertiary}"
+    "urban two way secondary": {
+      "filter": "{urban} and {two way secondary}"
     },
-    "oneway urban primary": {
-      "filter": "{urban} and {primary} and {oneway}"
+    "urban two way tertiary": {
+      "filter": "{urban} and {two way tertiary}"
     },
-    "oneway urban secondary": {
-      "filter": "{urban} and {secondary} and {oneway}"
+    "urban oneway primary": {
+      "filter": "{urban} and {oneway primary}"
     },
-    "oneway urban tertiary": {
-      "filter": "{urban} and {tertiary} and {oneway}"
+    "urban oneway secondary": {
+      "filter": "{urban} and {oneway secondary}"
+    },
+    "urban oneway tertiary": {
+      "filter": "{urban} and {oneway tertiary}"
     },
     "urban residential": {
       "filter": "{urban} and {residential}"
     },
+    "rural unclassified": {
+      "filter": "{rural} and {unclassified}"
+    },
     "rural service road": {
       "filter": "{rural} and {service road}"
     },
-    "rural primary": {
-      "filter": "{rural} and {primary}"
+    "rural trunk": {
+      "filter": "{rural} and {trunk}"
     },
-    "rural secondary": {
-      "filter": "{rural} and {secondary}"
+    "rural two way primary": {
+      "filter": "{rural} and {two way primary}"
     },
-    "rural tertiary": {
-      "filter": "{rural} and {tertiary}"
+    "rural two way secondary": {
+      "filter": "{rural} and {two way secondary}"
     },
-    "oneway rural primary": {
-      "filter": "{rural} and {primary} and {oneway}"
+    "rural two way tertiary": {
+      "filter": "{rural} and {two way tertiary}"
     },
-    "oneway rural secondary": {
-      "filter": "{rural} and {secondary} and {oneway}"
+    "rural oneway primary": {
+      "filter": "{rural} and {oneway primary}"
     },
-    "oneway rural tertiary": {
-      "filter": "{rural} and {tertiary} and {oneway}"
+    "rural oneway secondary": {
+      "filter": "{rural} and {oneway secondary}"
+    },
+    "rural oneway tertiary": {
+      "filter": "{rural} and {oneway tertiary}"
     },
     "rural residential": {
       "filter": "{rural} and {residential}"
@@ -4010,15 +4028,6 @@
         }
       },
       {
-        "name": "unclassified",
-        "tags": {
-          "maxspeed": "20",
-          "maxspeed:bus": "20",
-          "maxspeed:truck": "20",
-          "maxspeed:hgv": "20"
-        }
-      },
-      {
         "name": "living street",
         "tags": {
           "maxspeed": "20",
@@ -4028,21 +4037,12 @@
         }
       },
       {
-        "name": "motorway",
-        "tags": {
-          "maxspeed": "120",
-          "maxspeed:bus": "110",
-          "maxspeed:truck": "110",
-          "maxspeed:hgv": "110"
-        }
-      },
-      {
         "name": "roundabout",
         "tags": {
-          "maxspeed": "40",
-          "maxspeed:bus": "40",
-          "maxspeed:truck": "40",
-          "maxspeed:hgv": "40"
+          "maxspeed": "30",
+          "maxspeed:bus": "30",
+          "maxspeed:truck": "30",
+          "maxspeed:hgv": "30"
         }
       },
       {
@@ -4055,7 +4055,7 @@
         }
       },
       {
-        "name": "trunk",
+        "name": "rural motorway",
         "tags": {
           "maxspeed": "120",
           "maxspeed:bus": "110",
@@ -4064,7 +4064,16 @@
         }
       },
       {
-        "name": "oneway primary",
+        "name": "rural trunk",
+        "tags": {
+          "maxspeed": "120",
+          "maxspeed:bus": "110",
+          "maxspeed:truck": "110",
+          "maxspeed:hgv": "110"
+        }
+      },
+      {
+        "name": "rural oneway primary",
         "tags": {
           "maxspeed": "110",
           "maxspeed:bus": "100",
@@ -4073,7 +4082,7 @@
         }
       },
       {
-        "name": "oneway secondary",
+        "name": "rural oneway secondary",
         "tags": {
           "maxspeed": "90",
           "maxspeed:bus": "80",
@@ -4082,7 +4091,7 @@
         }
       },
       {
-        "name": "oneway tertiary",
+        "name": "rural oneway tertiary",
         "tags": {
           "maxspeed": "80",
           "maxspeed:bus": "70",
@@ -4091,7 +4100,7 @@
         }
       },
       {
-        "name": "primary",
+        "name": "rural two way primary",
         "tags": {
           "maxspeed": "60",
           "maxspeed:bus": "60",
@@ -4100,7 +4109,7 @@
         }
       },
       {
-        "name": "secondary",
+        "name": "rural two way secondary",
         "tags": {
           "maxspeed": "50",
           "maxspeed:bus": "50",
@@ -4109,7 +4118,7 @@
         }
       },
       {
-        "name": "tertiary",
+        "name": "rural two way tertiary",
         "tags": {
           "maxspeed": "40",
           "maxspeed:bus": "40",
@@ -4118,7 +4127,7 @@
         }
       },
       {
-        "name": "residential",
+        "name": "rural residential",
         "tags": {
           "maxspeed": "30",
           "maxspeed:bus": "30",
@@ -4127,21 +4136,21 @@
         }
       },
       {
-        "name": "urban motorway",
+        "name": "rural unclassified",
         "tags": {
-          "maxspeed": "110",
-          "maxspeed:bus": "100",
-          "maxspeed:truck": "100",
-          "maxspeed:hgv": "100"
+          "maxspeed": "40",
+          "maxspeed:bus": "40",
+          "maxspeed:truck": "40",
+          "maxspeed:hgv": "40"
         }
       },
       {
-        "name": "urban service road",
+        "name": "urban motorway",
         "tags": {
-          "maxspeed": "20",
-          "maxspeed:bus": "20",
-          "maxspeed:truck": "20",
-          "maxspeed:hgv": "20"
+          "maxspeed": "90",
+          "maxspeed:bus": "80",
+          "maxspeed:truck": "80",
+          "maxspeed:hgv": "80"
         }
       },
       {
@@ -4154,7 +4163,7 @@
         }
       },
       {
-        "name": "urban primary",
+        "name": "urban two way primary",
         "tags": {
           "maxspeed": "50",
           "maxspeed:bus": "50",
@@ -4163,7 +4172,7 @@
         }
       },
       {
-        "name": "urban secondary",
+        "name": "urban two way secondary",
         "tags": {
           "maxspeed": "40",
           "maxspeed:bus": "40",
@@ -4172,7 +4181,7 @@
         }
       },
       {
-        "name": "urban tertiary",
+        "name": "urban two way tertiary",
         "tags": {
           "maxspeed": "30",
           "maxspeed:bus": "30",
@@ -4181,7 +4190,7 @@
         }
       },
       {
-        "name": "oneway urban primary",
+        "name": "urban oneway primary",
         "tags": {
           "maxspeed": "60",
           "maxspeed:bus": "60",
@@ -4190,7 +4199,7 @@
         }
       },
       {
-        "name": "oneway urban secondary",
+        "name": "urban oneway secondary",
         "tags": {
           "maxspeed": "50",
           "maxspeed:bus": "50",
@@ -4199,7 +4208,7 @@
         }
       },
       {
-        "name": "oneway urban tertiary",
+        "name": "urban oneway tertiary",
         "tags": {
           "maxspeed": "40",
           "maxspeed:bus": "40",
@@ -4217,75 +4226,12 @@
         }
       },
       {
-        "name": "rural service road",
-        "tags": {
-          "maxspeed": "20",
-          "maxspeed:bus": "20",
-          "maxspeed:truck": "20",
-          "maxspeed:hgv": "20"
-        }
-      },
-      {
-        "name": "rural primary",
-        "tags": {
-          "maxspeed": "60",
-          "maxspeed:bus": "60",
-          "maxspeed:truck": "60",
-          "maxspeed:hgv": "60"
-        }
-      },
-      {
-        "name": "rural secondary",
-        "tags": {
-          "maxspeed": "40",
-          "maxspeed:bus": "40",
-          "maxspeed:truck": "40",
-          "maxspeed:hgv": "40"
-        }
-      },
-      {
-        "name": "rural tertiary",
+        "name": "urban unclassified",
         "tags": {
           "maxspeed": "30",
           "maxspeed:bus": "30",
           "maxspeed:truck": "30",
           "maxspeed:hgv": "30"
-        }
-      },
-      {
-        "name": "oneway rural primary",
-        "tags": {
-          "maxspeed": "60",
-          "maxspeed:bus": "60",
-          "maxspeed:truck": "60",
-          "maxspeed:hgv": "60"
-        }
-      },
-      {
-        "name": "oneway rural secondary",
-        "tags": {
-          "maxspeed": "50",
-          "maxspeed:bus": "50",
-          "maxspeed:truck": "50",
-          "maxspeed:hgv": "50"
-        }
-      },
-      {
-        "name": "oneway rural tertiary",
-        "tags": {
-          "maxspeed": "40",
-          "maxspeed:bus": "40",
-          "maxspeed:truck": "40",
-          "maxspeed:hgv": "40"
-        }
-      },
-      {
-        "name": "rural residential",
-        "tags": {
-          "maxspeed": "20",
-          "maxspeed:bus": "20",
-          "maxspeed:truck": "20",
-          "maxspeed:hgv": "20"
         }
       }
     ],
