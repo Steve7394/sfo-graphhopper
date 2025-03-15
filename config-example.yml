@@ -163,10 +163,10 @@ graphhopper:
   # Use higher/lower sensitivities if too little/many roads fall into the according categories.
   # Using smaller radii will speed up the classification, but only change these values if you know what you are doing.
   # If you do not need the (rather slow) city classification set city_radius to zero.
-  graph.urban_density.residential_radius: 400
-  graph.urban_density.residential_sensitivity: 6000
-  graph.urban_density.city_radius: 1500
-  graph.urban_density.city_sensitivity: 1000
+  graph.urban_density.residential_radius: 500
+  graph.urban_density.residential_sensitivity: 7000
+  graph.urban_density.city_radius: 2000
+  graph.urban_density.city_sensitivity: 2000
 
 
   #### Subnetworks ####
