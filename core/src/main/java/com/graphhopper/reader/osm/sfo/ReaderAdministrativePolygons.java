@@ -91,16 +91,15 @@ public class ReaderAdministrativePolygons implements IReaderAdministrativePolygo
             LongArrayList innerMembers = members.get(AdministrativeRelationMemberType.INNER);
             List<List<List<Double>>> outerCoordinates = new ArrayList<>();
             List<List<List<Double>>> innerCoordinates = new ArrayList<>();
-            if (outerMembers.size() != 0) {
+            if (!outerMembers.isEmpty()) {
                 outerCoordinates = fetchGeometry(outerMembers, true);
             }
-            if (innerMembers.size() != 0) {
+            if (!innerMembers.isEmpty()) {
                 innerCoordinates = fetchGeometry(innerMembers, false);
             }
             if (innerCoordinates == null && outerCoordinates == null) {
                 continue;
             }
-            ;
             List<ObjectNode> features = levelToFeatureCollection.getOrDefault(tags.level.getLevel(), null);
             if (features == null) continue;
             ObjectNode feature = createGeojsonFeature(
@@ -111,6 +110,10 @@ public class ReaderAdministrativePolygons implements IReaderAdministrativePolygo
                     relationId
             );
             if (feature == null) continue;
+            if (!AdministrativeUtils.isValid(AdministrativeUtils.convertGeojsonNodeToMultiPolygon(feature))){
+                LOGGER.warn("The relation with Id " + relationId + " does not have valid geometry");
+                continue;
+            };
             features.add(feature);
         }
         flush();
@@ -155,11 +158,11 @@ public class ReaderAdministrativePolygons implements IReaderAdministrativePolygo
             if ((isCounterClockWise && !isOuter) || !isCounterClockWise && isOuter) {
                 Collections.reverse(temp);
             }
-            if (temp.size() == 0) continue;
+            if (temp.isEmpty()) continue;
             output.add(new ArrayList<>(temp));
             temp.clear();
         }
-        if (output.size() == 0) return null;
+        if (output.isEmpty()) return null;
         return output;
     }
 
@@ -232,7 +235,7 @@ public class ReaderAdministrativePolygons implements IReaderAdministrativePolygo
         if (innerCoordinates != null) {
             rings.addAll(connectWays(innerCoordinates));
         }
-        if (rings.size() == 0) return null;
+        if (rings.isEmpty()) return null;
         ObjectNode feature = mapper.createObjectNode();
         feature.put("type", "Feature");
         feature.put("id", osmId);
