@@ -110,10 +110,6 @@ public class ReaderAdministrativePolygons implements IReaderAdministrativePolygo
                     relationId
             );
             if (feature == null) continue;
-            if (!AdministrativeUtils.isValid(AdministrativeUtils.convertGeojsonNodeToMultiPolygon(feature))){
-                LOGGER.warn("The relation with Id " + relationId + " does not have valid geometry");
-                continue;
-            };
             features.add(feature);
         }
         flush();
@@ -228,33 +224,41 @@ public class ReaderAdministrativePolygons implements IReaderAdministrativePolygo
     }
 
     private ObjectNode createGeojsonFeature(List<List<List<Double>>> outerCoordinates, List<List<List<Double>>> innerCoordinates, String level, String name, Long osmId) {
-        List<List<List<Double>>> rings = new ArrayList<>();
+        List<List<List<Double>>> outerRings = new ArrayList<>();
+        List<List<List<Double>>> innerRings = new ArrayList<>();
         if (outerCoordinates != null) {
-            rings.addAll(connectWays(outerCoordinates));
+            outerRings.addAll(connectWays(outerCoordinates));
         }
+
+        if (outerRings.isEmpty()) return null;
+
         if (innerCoordinates != null) {
-            rings.addAll(connectWays(innerCoordinates));
+            innerRings.addAll(connectWays(innerCoordinates));
         }
-        if (rings.isEmpty()) return null;
+
+        List<List<List<List<Double>>>> multiPolygon = AdministrativeUtils.createMultiPolygon(outerRings, innerRings, osmId);
+        if (multiPolygon == null) return null;
         ObjectNode feature = mapper.createObjectNode();
         feature.put("type", "Feature");
         feature.put("id", osmId);
         ObjectNode geometry = mapper.createObjectNode();
         geometry.put("type", "MultiPolygon");
-        ArrayNode parentCoordinates = mapper.createArrayNode();
         ArrayNode coordinates = mapper.createArrayNode();
-        for (List<List<Double>> ring : rings) {
-            ArrayNode ringNode = mapper.createArrayNode();
-            for (List<Double> point : ring) {
-                ArrayNode pointNode = mapper.createArrayNode();
-                pointNode.add(point.get(0));
-                pointNode.add(point.get(1));
-                ringNode.add(pointNode);
+        for (List<List<List<Double>>> polygon : multiPolygon) {
+            ArrayNode polygonNode = mapper.createArrayNode();
+            for (List<List<Double>> ring : polygon) {
+                ArrayNode ringNode = mapper.createArrayNode();
+                for (List<Double> point : ring) {
+                    ArrayNode pointNode = mapper.createArrayNode();
+                    pointNode.add(point.get(0));
+                    pointNode.add(point.get(1));
+                    ringNode.add(pointNode);
+                }
+                polygonNode.add(ringNode);
             }
-            coordinates.add(ringNode);
+            coordinates.add(polygonNode);
         }
-        parentCoordinates.add(coordinates);
-        geometry.set("coordinates", parentCoordinates);
+        geometry.set("coordinates", coordinates);
         feature.set("geometry", geometry);
         ObjectNode properties = mapper.createObjectNode();
         properties.put("level", level);
