@@ -3,37 +3,39 @@ package com.graphhopper.sfo.rgeocode.dto;
 import java.util.List;
 
 public class SnapResponse {
-    private String street;
-    private String streetType;
-    private Double streetMaxSpeed;
-    private Integer streetOsmId;
+    private final static String MISSING_STRING = "missing";
+    private final static int MISSING_INTEGER = 0;
+    private String street = MISSING_STRING;
+    private String streetType = MISSING_STRING;
+    private Double streetMaxSpeed = MISSING_INTEGER * .0;
+    private Integer streetOsmId = MISSING_INTEGER;
 
 
-    private String country;
+    private String country = MISSING_STRING;
 
-    private String province;
-    private Integer provinceOsmId;
+    private String province = MISSING_STRING;
+    private Integer provinceOsmId = MISSING_INTEGER;
 
-    private String city;
-    private Integer cityOsmId;
+    private String city = MISSING_STRING;
+    private Integer cityOsmId = MISSING_INTEGER;
 
-    private String county;
-    private Integer countyOsmId;
+    private String county = MISSING_STRING;
+    private Integer countyOsmId = MISSING_INTEGER;
 
-    private String district;
-    private Integer districtOsmId;
+    private String district = MISSING_STRING;
+    private Integer districtOsmId = MISSING_INTEGER;
 
-    private String village;
-    private Integer villageOsmId;
+    private String village = MISSING_STRING;
+    private Integer villageOsmId = MISSING_INTEGER;
 
-    private String suburb;
-    private Integer suburbOsmId;
+    private String suburb = MISSING_STRING;
+    private Integer suburbOsmId = MISSING_INTEGER;
 
-    private String subarea;
-    private Integer subareaOsmId;
+    private String subarea = MISSING_STRING;
+    private Integer subareaOsmId = MISSING_INTEGER;
 
-    private String neighbourhood;
-    private Integer neighbourhoodOsmId;
+    private String neighbourhood = MISSING_STRING;
+    private Integer neighbourhoodOsmId = MISSING_INTEGER;
 
     private List<Long> customPolygon;
 
