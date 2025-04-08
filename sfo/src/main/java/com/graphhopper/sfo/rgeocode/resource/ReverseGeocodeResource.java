@@ -39,8 +39,12 @@ public class ReverseGeocodeResource {
     @GET
     @Path("")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response doGet(@QueryParam("lat") double lat, @QueryParam("lon") double lon) {
-        SnapResponse response = reverseGeocodeService.createSnapResponse(lat, lon);
+    public Response doGet(
+            @QueryParam("lat") double lat,
+            @QueryParam("lon") double lon,
+            @QueryParam("forceEdge") @DefaultValue("true") boolean forceEdge
+            ) {
+        SnapResponse response = reverseGeocodeService.createSnapResponse(lat, lon, forceEdge);
         return Response.status(Response.Status.OK)
                 .entity(response)
                 .build();
@@ -49,9 +53,12 @@ public class ReverseGeocodeResource {
     @GET
     @Path("{coordinatesArray : .+}")
     @Produces({MediaType.APPLICATION_JSON})
-    public Response doGetMultiPointBySnap(@Context HttpServletRequest httpReq){
+    public Response doGetMultiPointBySnap(
+            @Context HttpServletRequest httpReq,
+            @QueryParam("forceEdge") @DefaultValue("true") boolean forceEdge
+            ){
         List<GHPoint> points = Utils.getPointsFromRequest(httpReq, "/reverse-geocode/");
-        SnapResponse response = reverseGeocodeService.createSnapResponse(points);
+        SnapResponse response = reverseGeocodeService.createSnapResponse(points, forceEdge);
         return Response.status(Response.Status.OK)
                 .entity(response)
                 .build();

@@ -5,7 +5,9 @@ import com.graphhopper.gpx.GpxConversions;
 import com.graphhopper.jackson.Gpx;
 import com.graphhopper.matching.MapMatching;
 import com.graphhopper.matching.MatchResult;
+import com.graphhopper.reader.osm.sfo.AdministrativeLevel;
 import com.graphhopper.routing.ev.*;
+import com.graphhopper.routing.util.CustomArea;
 import com.graphhopper.routing.util.EdgeFilter;
 import com.graphhopper.routing.util.EncodingManager;
 import com.graphhopper.routing.util.parsers.sfo.*;
@@ -21,6 +23,7 @@ import com.graphhopper.util.shapes.GHPoint;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ReverseGeocodeService {
     private final GraphHopper graphhopper;
@@ -29,49 +32,97 @@ public class ReverseGeocodeService {
         this.graphhopper = graphHopper;
     }
 
-    public SnapResponse createSnapResponse(SnapRequest request){
+    public SnapResponse createSnapResponse(SnapRequest request) {
         validateRequest(request);
         return createResponse(request);
     }
 
-    public SnapResponse createSnapResponse(double lat, double lon){
+    public SnapResponse createSnapResponse(double lat, double lon, boolean forceEdge) {
         validateRequest(lat, lon);
-        return createResponse(lat, lon);
+        return createResponse(lat, lon, EdgeFilter.ALL_EDGES, forceEdge);
     }
 
-    private void validateRequest(SnapRequest request){
-        if (request.getLat() == null || request.getLon() == null){
+    private void validateRequest(SnapRequest request) {
+        validateRequest(request.getLat(), request.getLon());
+    }
+
+    private void validateRequest(double lat, double lon) {
+        if (lat == 0.0 || lon == 0.0) {
             throw new IllegalArgumentException("The latitude and longitude parameters can not be null");
         }
     }
 
-    private void validateRequest(double lat, double lon){
-        if (lat == 0.0 || lon == 0.0){
-            throw new IllegalArgumentException("The latitude and longitude parameters can not be null");
-        }
+    private SnapResponse createResponse(SnapRequest request) {
+        return createResponse(request.getLat(), request.getLon(), EdgeFilter.ALL_EDGES, request.isForceEdge());
     }
 
-    private SnapResponse createResponse(SnapRequest request){
+    private SnapResponse createResponse(double lat, double lon, EdgeFilter edgeFilter, boolean forceEdge) {
         EdgeIteratorState edge = graphhopper.getLocationIndex()
-                .findClosest(request.getLat(), request.getLon(), EdgeFilter.ALL_EDGES)
+                .findClosest(lat, lon, edgeFilter)
                 .getClosestEdge();
-        if (edge == null){
-            throw new IllegalArgumentException("There is no edge near requested point: {" + request.toString() + "}");
+        if (edge != null) {
+            return createResponse(edge);
+        } else {
+            if (forceEdge) {
+                throw new IllegalArgumentException("There is no edge near requested point: { " + "lat: " + lat + ", lon: " + lon + " }");
+            }
+            return createResponse(lat, lon);
         }
-        return createResponse(edge);
     }
 
-    private SnapResponse createResponse(double lat, double lon){
-        EdgeIteratorState edge = graphhopper.getLocationIndex()
-                .findClosest(lat, lon, EdgeFilter.ALL_EDGES)
-                .getClosestEdge();
-        if (edge == null){
-            throw new IllegalArgumentException("There is no edge near requested point: { " + "lat: " + lat + ", lon: " + lon + " }");
-        }
-        return createResponse(edge);
+    private SnapResponse createResponse(double lat, double lon) {
+        List<CustomArea> administrativePolygons = Utils.findPolygons(
+                lat,
+                lon,
+                graphhopper.getAreaManager().getAdministrativePolygons()
+        );
+        List<CustomArea> customPolygons = Utils.findPolygons(
+                lat,
+                lon,
+                graphhopper.getAreaManager().getCustomPolygons()
+        );
+
+        SnapResponse snapResponse = new SnapResponse();
+        administrativePolygons.forEach(administrativePolygon -> {
+            String name = (String) administrativePolygon.getProperties().getOrDefault("name", "");
+            int osmId = (int) administrativePolygon.getProperties().getOrDefault("osm_id", 0);
+            String level = (String) administrativePolygon.getProperties().getOrDefault("level", Country.KEY);
+
+            if (level.equals(Country.KEY)) {
+                snapResponse.setCountry(name);
+            } else if (level.equals(AdministrativeLevel.PROVINCE.getName())) {
+                snapResponse.setProvince(name);
+                snapResponse.setProvinceOsmId(osmId);
+            } else if (level.equals(AdministrativeLevel.COUNTY.getName())) {
+                snapResponse.setCounty(name);
+                snapResponse.setCountyOsmId(osmId);
+            } else if (level.equals(AdministrativeLevel.DISTRICT.getName())) {
+                snapResponse.setDistrict(name);
+                snapResponse.setDistrictOsmId(osmId);
+            } else if (level.equals(AdministrativeLevel.CITY_MUNICIPALITY.getName())) {
+                snapResponse.setCity(name);
+                snapResponse.setCityOsmId(osmId);
+            } else if (level.equals(AdministrativeLevel.VILLAGE.getName())) {
+                snapResponse.setVillage(name);
+                snapResponse.setVillageOsmId(osmId);
+            } else if (level.equals(AdministrativeLevel.SUBURB.getName())) {
+                snapResponse.setSuburb(name);
+                snapResponse.setSuburbOsmId(osmId);
+            } else if (level.equals(AdministrativeLevel.SUBAREA.getName())) {
+                snapResponse.setSubarea(name);
+                snapResponse.setSubareaOsmId(osmId);
+            } else if (level.equals(AdministrativeLevel.NEIGHBOURHOOD.getName())) {
+                snapResponse.setNeighbourhood(name);
+                snapResponse.setNeighbourhoodOsmId(osmId);
+            }
+        });
+
+        snapResponse.setCustomPolygon(customPolygons.stream().map(c -> (long) c.getProperties().get("id")).collect(Collectors.toList()));
+
+        return snapResponse;
     }
 
-    private SnapResponse createResponse(EdgeIteratorState edge ) {
+    private SnapResponse createResponse(EdgeIteratorState edge) {
         EncodingManager encodingManager = graphhopper.getEncodingManager();
         SnapResponse response = new SnapResponse();
         response.setStreet(edge.getName());
@@ -111,42 +162,37 @@ public class ReverseGeocodeService {
         return response;
     }
 
-    public SnapResponse createSnapResponse(List<GHPoint> points){
+    public SnapResponse createSnapResponse(List<GHPoint> points, boolean forceEdge) {
         double bearing = Utils.calculateOverallBearing(points);
-        EdgeFilter headingFilter = new ReverseGeocodeHeadingFilter(bearing, points.get(points.size()-1));
-        double lat = points.get(points.size()-1).getLat();
-        double lon = points.get(points.size()-1).getLon();
-        EdgeIteratorState edge = graphhopper.getLocationIndex()
-                .findClosest(lat, lon, headingFilter)
-                .getClosestEdge();
-        if (edge == null){
-            throw new IllegalArgumentException("There is no edge near requested point: { " + "lat: " + lat + ", lon: " + lon + " }");
-        }
-        return createResponse(edge);
+        EdgeFilter headingFilter = new ReverseGeocodeHeadingFilter(bearing, points.get(points.size() - 1));
+        double lat = points.get(points.size() - 1).getLat();
+        double lon = points.get(points.size() - 1).getLon();
+        return createResponse(lat, lon, headingFilter, forceEdge);
     }
 
-    public MapMatchResponse createMapMatchResponse(List<GHPoint> points, double gpsError){
+    public MapMatchResponse createMapMatchResponse(List<GHPoint> points, double gpsError) {
         EncodingManager encodingManager = graphhopper.getEncodingManager();
         Gpx gpx = Utils.createGpxFromPointList(points);
         PMap hints = new PMap();
         hints.putObject("profile", "car");
         MapMatching mapMatching = MapMatching.fromGraphHopper(graphhopper, hints);
+        mapMatching.setMeasurementErrorSigma(gpsError);
         MatchResult result = mapMatching.match(GpxConversions.getEntries(gpx.trk.get(0)));
         MapMatchResponse mapMatchResponse = new MapMatchResponse();
         double sumMaxSpeed = 0;
         int size = result.getEdgeMatches().size();
-        if (size == 0){
+        if (size == 0) {
             throw new RuntimeException("There is no match for: " + points);
         }
-        for (int i = 0; i < size; i++){
+        for (int i = 0; i < size; i++) {
             EdgeIteratorState edge = result.getEdgeMatches().get(i).getEdgeState();
             sumMaxSpeed += edge.get(encodingManager.getDecimalEncodedValue(MaxSpeed.KEY));
-            if (i == size - 1){
+            if (i == size - 1) {
                 mapMatchResponse.setSnapResponse(createResponse(edge));
             }
         }
         mapMatchResponse.setDistance(Helper.round2(result.getMatchLength()));
-        mapMatchResponse.setTime(Helper.round2(result.getMatchMillis()/1000.0));
+        mapMatchResponse.setTime(Helper.round2(result.getMatchMillis() / 1000.0));
         mapMatchResponse.setAverageMaxSpeed(Helper.round2(sumMaxSpeed / size));
         return mapMatchResponse;
 

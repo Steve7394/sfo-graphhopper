@@ -24,8 +24,6 @@ import java.util.stream.Collectors;
 public class AreaManager {
     private final List<CustomArea> customPolygons;
     private final List<CustomArea> administrativePolygons;
-    private AreaIndex<CustomArea> areaIndex;
-    private boolean isChanged = false;
     private static final Logger LOGGER = LoggerFactory.getLogger(AreaManager.class);
     private final CustomAreaFileManager mainFileManager;
     private final CustomAreaFileManager tempFileManager;
@@ -33,41 +31,26 @@ public class AreaManager {
     public AreaManager(List<CustomArea> customPolygons, List<CustomArea> administrativePolygons, String mainDir, String tempDir) {
         this.customPolygons = customPolygons;
         this.administrativePolygons = administrativePolygons;
-        this.areaIndex = buildAreaIndex();
         this.mainFileManager = new CustomAreaFileManager(mainDir, "polygon");
         this.tempFileManager = new CustomAreaFileManager(tempDir, "temp");
     }
 
-    public List<CustomArea> getCustomPolygons(){
+    public List<CustomArea> getCustomPolygons() {
         return new ArrayList<>(customPolygons);
     }
 
-    private AreaIndex<CustomArea> buildAreaIndex() {
-        List<CustomArea> all = new ArrayList<>(customPolygons.size() + administrativePolygons.size());
-        all.addAll(customPolygons);
-        all.addAll(administrativePolygons);
-        this.areaIndex = new AreaIndex<>(all);
-        isChanged = false;
-        return this.areaIndex;
-    }
-
-    public AreaIndex<CustomArea> getAreaIndex() {
-        if (isChanged) {
-            return buildAreaIndex();
-        } else {
-            return areaIndex;
-        }
+    public List<CustomArea> getAdministrativePolygons() {
+        return new ArrayList<>(administrativePolygons);
     }
 
     public void addCustomPolygon(CustomArea area, BaseGraph baseGraph, EncodingManager encodingManager) {
         String id = String.valueOf(area.getProperties().get("id"));
-        if (mainFileManager.write(id, area)){
-            if (tempFileManager.write(id, area)){
+        if (mainFileManager.write(id, area)) {
+            if (tempFileManager.write(id, area)) {
                 applyChange(baseGraph, encodingManager, area, id, false);
                 this.customPolygons.add(area);
-                isChanged = true;
                 return;
-            }else{
+            } else {
                 mainFileManager.delete(id);
                 throw new UncheckedIOException(new IOException("Can not write file on: " + tempFileManager.getDirectory()));
             }
@@ -77,19 +60,17 @@ public class AreaManager {
 
     public void removeCustomPolygon(String id, BaseGraph baseGraph, EncodingManager encodingManager) {
         CustomArea removedCandidate = getCustomArea(id);
-        if (mainFileManager.delete(id)){
-            if (tempFileManager.delete(id)){
+        if (mainFileManager.delete(id)) {
+            if (tempFileManager.delete(id)) {
                 applyChange(baseGraph, encodingManager, removedCandidate, id, true);
                 this.customPolygons.remove(removedCandidate);
-                isChanged = true;
                 return;
-            }else{
-                if (tempFileManager.logicalRemove(id, removedCandidate)){
+            } else {
+                if (tempFileManager.logicalRemove(id, removedCandidate)) {
                     applyChange(baseGraph, encodingManager, removedCandidate, id, true);
                     this.customPolygons.remove(removedCandidate);
-                    isChanged = true;
                     return;
-                }else{
+                } else {
                     mainFileManager.write(id, removedCandidate);
                     throw new UncheckedIOException(new IOException("Can not remove or write file on: " + tempFileManager.getDirectory()));
                 }
@@ -98,7 +79,7 @@ public class AreaManager {
         throw new UncheckedIOException(new IOException("Can not remove file on: " + mainFileManager.getDirectory()));
     }
 
-    private CustomArea getCustomArea(String id){
+    private CustomArea getCustomArea(String id) {
         CustomArea candidate = this.customPolygons.stream().filter(p -> String.valueOf(p.getProperties().get("id")).equals(id)).findFirst().orElse(null);
         if (candidate == null) {
             throw new RuntimeException("there is no custom polygon with id: " + id);
@@ -106,7 +87,7 @@ public class AreaManager {
         return candidate;
     }
 
-    public void updateCustomPolygon(String id, CustomArea area, BaseGraph baseGraph, EncodingManager encodingManager){
+    public void updateCustomPolygon(String id, CustomArea area, BaseGraph baseGraph, EncodingManager encodingManager) {
         try {
             getCustomArea(id);
         } catch (RuntimeException e) {
@@ -138,12 +119,12 @@ public class AreaManager {
         }
     }
 
-    private List<String> decode(EdgeIterator edgeIterator, StringEncodedValue customPolygonEncoder){
+    private List<String> decode(EdgeIterator edgeIterator, StringEncodedValue customPolygonEncoder) {
         return Arrays.stream(edgeIterator.get(customPolygonEncoder).split(",")).collect(Collectors.toList());
     }
 
     private String encode(List<String> values) {
-        if (values.isEmpty()){
+        if (values.isEmpty()) {
             values.add("0");
         }
         return String.join(",", values);
@@ -153,12 +134,12 @@ public class AreaManager {
         return new AreaIndex<>(List.of(area));
     }
 
-    public void applyTemp(BaseGraph baseGraph, EncodingManager encodingManager){
+    public void applyTemp(BaseGraph baseGraph, EncodingManager encodingManager) {
         tempFileManager.getAllCustomAreas(false).forEach(a -> {
-            applyChange(baseGraph, encodingManager, a,  String.valueOf(a.getProperties().get("id")), false);
+            applyChange(baseGraph, encodingManager, a, String.valueOf(a.getProperties().get("id")), false);
         });
         tempFileManager.getAllCustomAreas(true).forEach(a -> {
-            applyChange(baseGraph, encodingManager, a,  String.valueOf(a.getProperties().get("id")), true);
+            applyChange(baseGraph, encodingManager, a, String.valueOf(a.getProperties().get("id")), true);
         });
     }
 
