@@ -2,6 +2,8 @@ package com.graphhopper.sfo.rgeocode.util;
 
 
 import com.graphhopper.jackson.Gpx;
+import com.graphhopper.routing.util.AreaIndex;
+import com.graphhopper.routing.util.CustomArea;
 import com.graphhopper.util.shapes.GHPoint;
 
 import javax.servlet.http.HttpServletRequest;
@@ -75,6 +77,10 @@ public class Utils {
         trk.trkseg.add(trkseg);
         gpx.trk.add(trk);
         return gpx;
+    }
+
+    public static List<CustomArea> findPolygons(double lat, double lon, List<CustomArea> customAreas) {
+        return new AreaIndex<>(customAreas).query(lat, lon);
     }
 
 }
