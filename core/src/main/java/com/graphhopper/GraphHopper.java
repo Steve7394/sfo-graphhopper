@@ -614,7 +614,8 @@ public class GraphHopper {
                 })
                 .filter(Objects::nonNull)
                 .toList());
-        profilesByName.values().forEach(profile -> encodedValues.add(Subnetwork.create(profile.getName())));
+
+        encodedValues.addAll(createSubnetworkEncodedValues());
 
         List<String> sortedEVs = getEVSortIndex(profilesByName);
         encodedValues.sort(Comparator.comparingInt(ev -> sortedEVs.indexOf(ev.getName())));
@@ -625,6 +626,10 @@ public class GraphHopper {
                 .filter(e -> !e.getValue().isEmpty())
                 .forEach(e -> emBuilder.addTurnCostEncodedValue(TurnRestriction.create(e.getKey())));
         return emBuilder.build();
+    }
+
+    protected List<BooleanEncodedValue> createSubnetworkEncodedValues() {
+        return profilesByName.values().stream().map(profile -> Subnetwork.create(profile.getName())).toList();
     }
 
     protected List<String> getEVSortIndex(Map<String, Profile> profilesByName) {
@@ -877,8 +882,11 @@ public class GraphHopper {
 
         if (urbanDensityCalculationThreads > 0)
             encodedValuesWithProps.put(UrbanDensity.KEY, new PMap());
-        if (maxSpeedCalculator != null)
+        if (maxSpeedCalculator != null) {
+            if (urbanDensityCalculationThreads <= 0)
+                throw new IllegalArgumentException("For max_speed_calculator the urban density calculation needs to be enabled (e.g. graph.urban_density.threads: 1)");
             encodedValuesWithProps.put(MaxSpeedEstimated.KEY, new PMap());
+        }
 
         Map<String, ImportUnit> activeImportUnits = new LinkedHashMap<>();
         ArrayDeque<String> deque = new ArrayDeque<>(encodedValuesWithProps.keySet());
