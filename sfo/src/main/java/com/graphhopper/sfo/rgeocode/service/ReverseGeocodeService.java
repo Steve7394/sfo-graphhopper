@@ -21,6 +21,7 @@ import com.graphhopper.util.Helper;
 import com.graphhopper.util.PMap;
 import com.graphhopper.util.shapes.GHPoint;
 
+import javax.ws.rs.NotFoundException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -64,7 +65,7 @@ public class ReverseGeocodeService {
             return createResponse(edge);
         } else {
             if (forceEdge) {
-                throw new IllegalArgumentException("There is no edge near requested point: { " + "lat: " + lat + ", lon: " + lon + " }");
+                throw new NotFoundException("There is no edge near requested point: { " + "lat: " + lat + ", lon: " + lon + " }");
             }
             return createResponse(lat, lon);
         }
@@ -182,7 +183,7 @@ public class ReverseGeocodeService {
         double sumMaxSpeed = 0;
         int size = result.getEdgeMatches().size();
         if (size == 0) {
-            throw new RuntimeException("There is no match for: " + points);
+            throw new NotFoundException("There is no match for: " + points);
         }
         for (int i = 0; i < size; i++) {
             EdgeIteratorState edge = result.getEdgeMatches().get(i).getEdgeState();

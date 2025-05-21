@@ -14,6 +14,7 @@ import com.graphhopper.util.shapes.GHPoint;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
+import javax.ws.rs.NotFoundException;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
@@ -82,21 +83,23 @@ public class AreaManager {
     private CustomArea getCustomArea(String id) {
         CustomArea candidate = this.customPolygons.stream().filter(p -> String.valueOf(p.getProperties().get("id")).equals(id)).findFirst().orElse(null);
         if (candidate == null) {
-            throw new RuntimeException("there is no custom polygon with id: " + id);
+            throw new NotFoundException("there is no custom polygon with id: " + id);
         }
         return candidate;
     }
 
-    public void updateCustomPolygon(String id, CustomArea area, BaseGraph baseGraph, EncodingManager encodingManager) {
-        try {
-            getCustomArea(id);
-        } catch (RuntimeException e) {
-            LOGGER.warn(e.getLocalizedMessage());
+    public CustomArea getCustomArea(long id) {
+        return this.customPolygons.stream().filter(p -> String.valueOf(p.getProperties().get("id")).equals(String.valueOf(id))).findFirst().orElse(null);
+    }
+
+    public void updateCustomPolygon(Long id, CustomArea area, BaseGraph baseGraph, EncodingManager encodingManager) {
+        if (getCustomArea(id) == null){
+            LOGGER.warn("Custom polygon with id: " + id + " not found, " + "going to create one");
             addCustomPolygon(area, baseGraph, encodingManager);
-            return;
+        }else{
+            this.removeCustomPolygon(String.valueOf(id), baseGraph, encodingManager);
+            this.addCustomPolygon(area, baseGraph, encodingManager);
         }
-        this.removeCustomPolygon(id, baseGraph, encodingManager);
-        this.addCustomPolygon(area, baseGraph, encodingManager);
     }
 
     private void applyChange(BaseGraph baseGraph, EncodingManager encodingManager, CustomArea area, String value, boolean isRemove) {

@@ -37,6 +37,9 @@ public class CustomPolygonService {
 
     public void save(CustomPolygon area){
         validate(area);
+        if (graphHopper.getAreaManager().getCustomArea(area.getId()) != null){
+            throw new IllegalArgumentException("custom area already exists: " + area.getId());
+        }
         graphHopper.getAreaManager().addCustomPolygon(
                 customPolygon2CustomArea(area),
                 graphHopper.getBaseGraph(),
@@ -44,21 +47,20 @@ public class CustomPolygonService {
         );
     }
 
-    public void update(CustomPolygon area, long id){
-        validate(id);
-        if (id != area.getId()){
-            throw new RuntimeException("the id in path param: " + id + " do not match with area id: " + area.getId());
-        }
+    public void update(CustomPolygon area, Long id){
+        validateId(id);
+        validateGeometryString(area.getGeometry());
+        area.setId(id);
         graphHopper.getAreaManager().updateCustomPolygon(
-                String.valueOf(id),
+                id,
                 customPolygon2CustomArea(area),
                 graphHopper.getBaseGraph(),
                 encodingManager
         );
     }
 
-    public void delete(long id){
-        validate(id);
+    public void delete(Long id){
+        validateId(id);
         graphHopper.getAreaManager().removeCustomPolygon(
                 String.valueOf(id),
                 graphHopper.getBaseGraph(),
@@ -81,12 +83,19 @@ public class CustomPolygonService {
         );
     }
 
-    private void validate(long id){
-        if (id == 0){
-            throw new IllegalArgumentException("The polygon id can not be zero");
+    private void validateId(Long id){
+        if (id == null){
+            throw new IllegalArgumentException("The polygon id can not be null");
+        }
+    }
+
+    private void validateGeometryString(String geometryString){
+        if (geometryString == null || geometryString.isEmpty()){
+            throw new IllegalArgumentException("The polygon geometry can not be empty or null");
         }
     }
     private void validate(CustomPolygon polygon){
-        validate(polygon.getId());
+        validateId(polygon.getId());
+        validateGeometryString(polygon.getGeometry());
     }
 }

@@ -17,6 +17,7 @@ public class Utils {
         url = url.substring(urlStart.length());
         String[] pointStrings = url.split(";");
         List<GHPoint> points = new ArrayList<>(pointStrings.length);
+        if (pointStrings.length == 0) throw new IllegalArgumentException("can not parse points from" + url);
         for (String pointString : pointStrings) {
             points.add(GHPoint.fromStringLonLat(pointString));
         }

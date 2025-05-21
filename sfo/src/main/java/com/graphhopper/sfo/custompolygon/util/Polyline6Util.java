@@ -19,7 +19,7 @@ public class Polyline6Util {
             int result = 0;
             int b;
             do {
-                if (encoded.length() - 1 < index) throw new RuntimeException("The Geometry is not valid");
+                if (encoded.length() - 1 < index) throw new IllegalArgumentException("The Geometry is not valid");
                 b = encoded.charAt(index++) - 63;
                 result |= (b & 0x1f) << shift;
                 shift += 5;
@@ -30,7 +30,7 @@ public class Polyline6Util {
             shift = 0;
             result = 0;
             do {
-                if (encoded.length() - 1 < index) throw new RuntimeException("The Geometry is not valid");
+                if (encoded.length() - 1 < index) throw new IllegalArgumentException("The Geometry is not valid");
                 b = encoded.charAt(index++) - 63;
                 result |= (b & 0x1f) << shift;
                 shift += 5;
